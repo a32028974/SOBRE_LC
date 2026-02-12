@@ -4,31 +4,36 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sobre LC Clientes • Imprimir</title>
+
   <style>
     :root{
-      /* === HOJA === */
+      /* ===== HOJA (lienzo) ===== */
       --page-w: 210mm;   /* A4 */
       --page-h: 297mm;   /* A4 */
 
-      /* === BLOQUE IMPRESO (TU “ESPACIO”) ===
-         Ajustá esto si querés replicar EXACTO el ancho/alto del área que usabas en Excel. */
+      /* ===== BLOQUE IMPRESO (tu “zona”) ===== */
       --block-w: 180mm;
       --block-h: 70mm;
 
-      /* === POSICIÓN (OFFSET) DEL BLOQUE EN LA HOJA ===
-         Esto es lo que te deja clavar el lugar exacto del sobre. */
+      /* ===== OFFSET (posición del bloque en la hoja) ===== */
       --off-x: 12mm;
       --off-y: 32mm;
 
-      /* Separaciones internas */
+      /* ===== ROTACIÓN DEL BLOQUE =====
+         90deg = sobre entra VERTICAL (tu caso)
+         0deg  = sobre entra HORIZONTAL
+      */
+      --rot: 90deg;
+
+      /* ===== Padding interno ===== */
       --pad: 4mm;
 
-      /* Tipos base (el script las baja si no entra) */
+      /* ===== Tipos base (se achica si no entra) ===== */
       --num-size: 64pt;
       --ape-size: 58pt;
       --nom-size: 46pt;
 
-      /* Tipografía */
+      /* ===== Fuente ===== */
       --font: "Arial", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
 
@@ -66,7 +71,7 @@
     }
 
     label{ font-size:12px; opacity:.9; }
-    input{
+    input, select{
       padding:10px 12px;
       border-radius:10px;
       border:1px solid #2b3a52;
@@ -75,7 +80,7 @@
       outline:none;
       font-size:16px;
     }
-    input:focus{ border-color:#4c84ff; }
+    input:focus, select:focus{ border-color:#4c84ff; }
 
     .btns{
       display:flex;
@@ -96,7 +101,7 @@
     .b4{ background:#334155; color:#e8eef7; }
 
     .small{
-      opacity:.85;
+      opacity:.9;
       font-size:12px;
       margin-top:8px;
       line-height:1.35;
@@ -131,6 +136,8 @@
       outline-offset: -2px;
       background: rgba(76,132,255,.05);
       padding: 8px;
+      transform-origin: top left;
+      transform: rotate(var(--rot));
     }
 
     .mini{
@@ -142,14 +149,14 @@
       justify-content:space-between;
       gap: 10px;
     }
-    .mini .num{ font-weight:900; font-size: 34px; letter-spacing:1px; }
+    .mini .num{ font-weight:900; font-size: 34px; letter-spacing:1px; white-space:nowrap; }
     .mini .names{ flex:1; text-align:center; }
-    .mini .ape{ font-weight:900; font-size: 30px; letter-spacing:1px; }
-    .mini .nom{ font-weight:900; font-size: 24px; letter-spacing:1px; margin-top:4px; }
+    .mini .ape{ font-weight:900; font-size: 30px; letter-spacing:1px; white-space:nowrap; overflow:hidden; }
+    .mini .nom{ font-weight:900; font-size: 24px; letter-spacing:1px; margin-top:4px; white-space:nowrap; overflow:hidden; }
 
     .tools{
       flex: 1;
-      min-width: 260px;
+      min-width: 290px;
       background:#0f1622;
       border:1px solid #243044;
       border-radius: 12px;
@@ -183,18 +190,23 @@
       background:#fff;
     }
 
-    /* Bloque que replica tu “zona de impresión” */
+    /* ✅ Bloque real (lo que imprime) */
     .print-block{
       position:absolute;
-      left: var(--off-x);
-      top:  var(--off-y);
+      left: 0;
+      top:  0;
+
       width: var(--block-w);
       height: var(--block-h);
       padding: var(--pad);
+
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap: 6mm;
+
+      transform-origin: top left;
+      transform: translate(var(--off-x), var(--off-y)) rotate(var(--rot));
     }
 
     .p-num{
@@ -214,7 +226,7 @@
       flex-direction:column;
       justify-content:center;
       gap: 2mm;
-      min-width: 0; /* para que el fit funcione */
+      min-width: 0;
     }
 
     .p-ape, .p-nom{
@@ -228,7 +240,6 @@
     .p-ape{ font-size: var(--ape-size); }
     .p-nom{ font-size: var(--nom-size); }
 
-    /* Tamaño de hoja */
     @page{
       size: A4;
       margin: 0;
@@ -240,7 +251,7 @@
   <div class="app">
     <div class="panel">
       <div class="field">
-        <label>Número (4 a 6 dígitos)</label>
+        <label>Número v1 (4 a 6 dígitos)</label>
         <input id="num" inputmode="numeric" placeholder="Ej: 7909" />
       </div>
 
@@ -254,6 +265,14 @@
         <input id="nom" placeholder="Ej: MAYRA / CECILIA" />
       </div>
 
+      <div class="field" style="min-width:260px">
+        <label>Modo de entrada del sobre</label>
+        <select id="modo">
+          <option value="vertical">VERTICAL (entra como hoja • cara arriba) ✅</option>
+          <option value="horizontal">HORIZONTAL (entra acostado)</option>
+        </select>
+      </div>
+
       <div class="btns">
         <button class="b1" id="btnNext">Siguiente Nº</button>
         <button class="b4" id="btnUpdate">Actualizar vista</button>
@@ -262,8 +281,9 @@
       </div>
 
       <div class="small">
-        ✅ Se guarda automático: último número y offsets (X/Y) en esta PC.<br>
-        ✅ Todo se pone en MAYÚSCULAS y se “achica” si no entra.
+        ✅ Se guarda automático: último número, modo (vertical/horizontal) y offsets (X/Y) en esta PC.<br>
+        ✅ Todo se pone en MAYÚSCULAS y se “achica” si no entra.<br>
+        🖨️ Recomendación: A4 • 100% • sin “ajustar a página”.
       </div>
     </div>
 
@@ -282,6 +302,7 @@
 
       <div class="tools">
         <h3>Ajuste fino (para que quede IGUAL a tu Excel)</h3>
+
         <div class="row">
           <div class="field">
             <label>Offset X (mm)</label>
@@ -322,7 +343,7 @@
         <button class="b4" id="btnSaveDims">Guardar medidas</button>
 
         <div class="small" style="margin-top:10px">
-          📌 Si en la tablet te imprime “Carta” y recorta: en el diálogo de imprimir elegí <b>A4</b> y “márgenes: ninguno” (o “sin bordes” si tu impresora lo permite).
+          📌 Si te aparece “Carta” en Excel/Windows: ponelo en A4 en “Propiedades de impresora” (Brother) para que no recorte.
         </div>
       </div>
     </div>
@@ -340,26 +361,21 @@
   </div>
 
 <script>
-  // ===== Helpers =====
   const $ = (id) => document.getElementById(id);
 
   function toUpperSafe(s){
     return (s ?? "").toString().trim().toUpperCase();
   }
 
-  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-
   // Achica font-size hasta que entre en el ancho disponible
   function fitSingleLine(el, maxPt, minPt){
     el.style.fontSize = maxPt + "pt";
-    // fuerza layout
     el.getBoundingClientRect();
 
     let pt = maxPt;
     const parent = el.parentElement;
     const maxW = parent ? parent.clientWidth : el.clientWidth;
 
-    // Si el elemento tiene max-width por diseño, respetamos el real
     while (pt > minPt && el.scrollWidth > maxW){
       pt -= 1;
       el.style.fontSize = pt + "pt";
@@ -370,17 +386,12 @@
     document.documentElement.style.setProperty(name, value + unit);
   }
 
-  function getCssVarPx(name){
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  }
-
-  // ===== Persistencia =====
-  const KEY = "sobre_lc_clientes_v1";
+  // ===== Persistencia (separa por modo) =====
+  const KEY = "sobre_lc_clientes_v2";
 
   function loadState(){
-    try{
-      return JSON.parse(localStorage.getItem(KEY) || "{}");
-    }catch{ return {}; }
+    try{ return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+    catch{ return {}; }
   }
   function saveState(patch){
     const st = loadState();
@@ -389,11 +400,13 @@
     return next;
   }
 
-  // ===== Defaults =====
+  // Defaults
   const defaults = {
     num: 7909,
-    offx: 12,
-    offy: 32,
+    modo: "vertical",   // tu caso
+    // Valores iniciales por modo (podés dejarlos así y ajustar una vez)
+    vertical: { offx: 12, offy: 32, rot: 90 },
+    horizontal:{ offx: 12, offy: 32, rot: 0 },
     bw: 180,
     bh: 70,
     fsNum: 64,
@@ -401,27 +414,48 @@
     fsNom: 46
   };
 
+  function setMode(modo){
+    // vertical: sobre entra como hoja vertical, cara arriba => rot 90
+    const st = loadState();
+    const currentModo = modo || st.modo || defaults.modo;
+
+    const v = st.vertical || {};
+    const h = st.horizontal || {};
+
+    // toma guardados si existen, sino defaults
+    const conf = currentModo === "vertical"
+      ? { offx: v.offx ?? defaults.vertical.offx, offy: v.offy ?? defaults.vertical.offy, rot: defaults.vertical.rot }
+      : { offx: h.offx ?? defaults.horizontal.offx, offy: h.offy ?? defaults.horizontal.offy, rot: defaults.horizontal.rot };
+
+    $("modo").value = currentModo;
+
+    $("offx").value = conf.offx;
+    $("offy").value = conf.offy;
+
+    applyCssVar("--off-x", conf.offx, "mm");
+    applyCssVar("--off-y", conf.offy, "mm");
+    applyCssVar("--rot", conf.rot, "deg");
+
+    saveState({ modo: currentModo });
+  }
+
   function init(){
     const st = {...defaults, ...loadState()};
 
     $("num").value = st.num ?? "";
-    $("offx").value = st.offx;
-    $("offy").value = st.offy;
-    $("bw").value = st.bw;
-    $("bh").value = st.bh;
-    $("fsNum").value = st.fsNum;
-    $("fsApe").value = st.fsApe;
-    $("fsNom").value = st.fsNom;
+    $("bw").value = st.bw ?? defaults.bw;
+    $("bh").value = st.bh ?? defaults.bh;
+    $("fsNum").value = st.fsNum ?? defaults.fsNum;
+    $("fsApe").value = st.fsApe ?? defaults.fsApe;
+    $("fsNom").value = st.fsNom ?? defaults.fsNom;
 
-    // aplica a CSS vars
-    applyCssVar("--off-x", st.offx, "mm");
-    applyCssVar("--off-y", st.offy, "mm");
-    applyCssVar("--block-w", st.bw, "mm");
-    applyCssVar("--block-h", st.bh, "mm");
-    applyCssVar("--num-size", st.fsNum, "pt");
-    applyCssVar("--ape-size", st.fsApe, "pt");
-    applyCssVar("--nom-size", st.fsNom, "pt");
+    applyCssVar("--block-w", (st.bw ?? defaults.bw), "mm");
+    applyCssVar("--block-h", (st.bh ?? defaults.bh), "mm");
+    applyCssVar("--num-size", (st.fsNum ?? defaults.fsNum), "pt");
+    applyCssVar("--ape-size", (st.fsApe ?? defaults.fsApe), "pt");
+    applyCssVar("--nom-size", (st.fsNom ?? defaults.fsNom), "pt");
 
+    setMode(st.modo || defaults.modo);
     refresh();
   }
 
@@ -438,8 +472,6 @@
     $("pApe").textContent = ape;
     $("pNom").textContent = nom;
 
-    // Fit en impresión real (usa el ancho real del bloque)
-    // Nota: el fit se basa en el ancho del contenedor ya renderizado.
     const maxNum = parseFloat($("fsNum").value) || defaults.fsNum;
     const maxApe = parseFloat($("fsApe").value) || defaults.fsApe;
     const maxNom = parseFloat($("fsNom").value) || defaults.fsNom;
@@ -459,6 +491,8 @@
   }
 
   function saveDims(){
+    const modo = $("modo").value;
+
     const offx = parseFloat($("offx").value);
     const offy = parseFloat($("offy").value);
     const bw = parseFloat($("bw").value);
@@ -475,38 +509,56 @@
     if (Number.isFinite(fsApe)) applyCssVar("--ape-size", fsApe, "pt");
     if (Number.isFinite(fsNom)) applyCssVar("--nom-size", fsNom, "pt");
 
-    saveState({
-      offx: Number.isFinite(offx) ? offx : defaults.offx,
-      offy: Number.isFinite(offy) ? offy : defaults.offy,
+    const patch = {
       bw: Number.isFinite(bw) ? bw : defaults.bw,
       bh: Number.isFinite(bh) ? bh : defaults.bh,
       fsNum: Number.isFinite(fsNum) ? fsNum : defaults.fsNum,
       fsApe: Number.isFinite(fsApe) ? fsApe : defaults.fsApe,
       fsNom: Number.isFinite(fsNom) ? fsNom : defaults.fsNom
-    });
+    };
 
+    // guarda offsets por modo
+    if (modo === "vertical"){
+      patch.vertical = {...(loadState().vertical || {}), offx: Number.isFinite(offx)?offx:defaults.vertical.offx, offy: Number.isFinite(offy)?offy:defaults.vertical.offy};
+    }else{
+      patch.horizontal = {...(loadState().horizontal || {}), offx: Number.isFinite(offx)?offx:defaults.horizontal.offx, offy: Number.isFinite(offy)?offy:defaults.horizontal.offy};
+    }
+
+    saveState(patch);
     refresh();
     alert("Listo: medidas guardadas ✅");
   }
 
   function resetOffsets(){
-    $("offx").value = defaults.offx;
-    $("offy").value = defaults.offy;
-    applyCssVar("--off-x", defaults.offx, "mm");
-    applyCssVar("--off-y", defaults.offy, "mm");
-    saveState({ offx: defaults.offx, offy: defaults.offy });
+    const modo = $("modo").value;
+    if (modo === "vertical"){
+      $("offx").value = defaults.vertical.offx;
+      $("offy").value = defaults.vertical.offy;
+      applyCssVar("--off-x", defaults.vertical.offx, "mm");
+      applyCssVar("--off-y", defaults.vertical.offy, "mm");
+      saveState({ vertical: { offx: defaults.vertical.offx, offy: defaults.vertical.offy } });
+    }else{
+      $("offx").value = defaults.horizontal.offx;
+      $("offy").value = defaults.horizontal.offy;
+      applyCssVar("--off-x", defaults.horizontal.offx, "mm");
+      applyCssVar("--off-y", defaults.horizontal.offy, "mm");
+      saveState({ horizontal: { offx: defaults.horizontal.offx, offy: defaults.horizontal.offy } });
+    }
     refresh();
   }
 
   // ===== Events =====
   $("btnNext").addEventListener("click", nextNumber);
   $("btnUpdate").addEventListener("click", refresh);
-  $("btnPrint").addEventListener("click", () => {
-    refresh();
-    window.print();
-  });
+  $("btnPrint").addEventListener("click", () => { refresh(); window.print(); });
   $("btnSaveDims").addEventListener("click", saveDims);
   $("btnReset").addEventListener("click", resetOffsets);
+
+  $("modo").addEventListener("change", (e)=>{
+    const modo = e.target.value;
+    setMode(modo);
+    refresh();
+  });
 
   // Enter = actualizar
   ["num","ape","nom","offx","offy","bw","bh","fsNum","fsApe","fsNom"].forEach(id=>{
@@ -514,7 +566,6 @@
       if(e.key === "Enter"){ e.preventDefault(); refresh(); }
     });
     $(id).addEventListener("input", ()=>{
-      // auto refresh suave solo para datos principales
       if(["num","ape","nom"].includes(id)) refresh();
     });
   });
