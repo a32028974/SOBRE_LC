@@ -19,10 +19,7 @@
       --off-x: 12mm;
       --off-y: 32mm;
 
-      /* ===== ROTACIÓN DEL BLOQUE =====
-         90deg = sobre entra VERTICAL (tu caso)
-         0deg  = sobre entra HORIZONTAL
-      */
+      /* ===== ROTACIÓN DEL BLOQUE ===== */
       --rot: 0deg;
 
       /* ===== Padding interno ===== */
@@ -128,7 +125,7 @@
 
     .block-preview{
       position:absolute;
-      left: calc(var(--off-x) * (520 / 210)); /* escala aproximada para preview */
+      left: calc(var(--off-x) * (520 / 210));
       top:  calc(var(--off-y) * (520 / 210));
       width: calc(var(--block-w) * (520 / 210));
       height: calc(var(--block-h) * (520 / 210));
@@ -150,7 +147,7 @@
       gap: 10px;
     }
     .mini .num{ font-weight:900; font-size: 34px; letter-spacing:1px; white-space:nowrap; }
-    .mini .names{ flex:1; text-align:center; }
+    .mini .names{ flex:1; text-align:center; min-width:0; }
     .mini .ape{ font-weight:900; font-size: 30px; letter-spacing:1px; white-space:nowrap; overflow:hidden; }
     .mini .nom{ font-weight:900; font-size: 24px; letter-spacing:1px; margin-top:4px; white-space:nowrap; overflow:hidden; }
 
@@ -190,7 +187,6 @@
       background:#fff;
     }
 
-    /* ✅ Bloque real (lo que imprime) */
     .print-block{
       position:absolute;
       left: 0;
@@ -217,10 +213,11 @@
       white-space: nowrap;
       max-width: 60mm;
       overflow:hidden;
+      flex: 0 0 auto;
     }
 
     .p-names{
-      flex:1;
+      flex:1 1 auto;
       text-align:center;
       display:flex;
       flex-direction:column;
@@ -236,6 +233,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: clip;
+      min-width: 0;
     }
     .p-ape{ font-size: var(--ape-size); }
     .p-nom{ font-size: var(--nom-size); }
@@ -251,7 +249,7 @@
   <div class="app">
     <div class="panel">
       <div class="field">
-        <label>Número v3 (4 a 6 dígitos)</label>
+        <label>Número v4 (4 a 6 dígitos)</label>
         <input id="num" inputmode="numeric" placeholder="Ej: 7909" />
       </div>
 
@@ -353,7 +351,7 @@
   <div class="print-page">
     <div class="print-block" id="printBlock">
       <div class="p-num" id="pNum">—</div>
-      <div class="p-names">
+      <div class="p-names" id="pNames">
         <div class="p-ape" id="pApe">APELLIDO</div>
         <div class="p-nom" id="pNom">NOMBRE</div>
       </div>
@@ -367,14 +365,29 @@
     return (s ?? "").toString().trim().toUpperCase();
   }
 
-  // Achica font-size hasta que entre en el ancho disponible
-  function fitSingleLine(el, maxPt, minPt){
+  // ✅ NUEVO: auto-fit REAL (mide contra el bloque real .print-block)
+  // - Si pasás maxWidthPx, lo usa.
+  // - Si no, calcula el ancho disponible del contenedor.
+  function fitSingleLine(el, maxPt, minPt, maxWidthPx){
+    if(!el) return;
+
     el.style.fontSize = maxPt + "pt";
     el.getBoundingClientRect();
 
     let pt = maxPt;
-    const parent = el.parentElement;
-    const maxW = parent ? parent.clientWidth : el.clientWidth;
+
+    let maxW = maxWidthPx;
+    if(!Number.isFinite(maxW)){
+      const container = document.querySelector(".print-block");
+      if(container){
+        const cs = getComputedStyle(container);
+        const padL = parseFloat(cs.paddingLeft) || 0;
+        const padR = parseFloat(cs.paddingRight) || 0;
+        maxW = container.clientWidth - padL - padR - 12; // margen seguridad
+      }else{
+        maxW = el.parentElement ? el.parentElement.clientWidth : el.clientWidth;
+      }
+    }
 
     while (pt > minPt && el.scrollWidth > maxW){
       pt -= 1;
@@ -400,11 +413,9 @@
     return next;
   }
 
-  // Defaults
   const defaults = {
     num: 7909,
-    modo: "vertical",   // tu caso
-    // Valores iniciales por modo (podés dejarlos así y ajustar una vez)
+    modo: "vertical",
     vertical: { offx: 12, offy: 32, rot: 90 },
     horizontal:{ offx: 12, offy: 32, rot: 0 },
     bw: 180,
@@ -415,14 +426,12 @@
   };
 
   function setMode(modo){
-    // vertical: sobre entra como hoja vertical, cara arriba => rot 90
     const st = loadState();
     const currentModo = modo || st.modo || defaults.modo;
 
     const v = st.vertical || {};
     const h = st.horizontal || {};
 
-    // toma guardados si existen, sino defaults
     const conf = currentModo === "vertical"
       ? { offx: v.offx ?? defaults.vertical.offx, offy: v.offy ?? defaults.vertical.offy, rot: defaults.vertical.rot }
       : { offx: h.offx ?? defaults.horizontal.offx, offy: h.offy ?? defaults.horizontal.offy, rot: defaults.horizontal.rot };
@@ -476,9 +485,38 @@
     const maxApe = parseFloat($("fsApe").value) || defaults.fsApe;
     const maxNom = parseFloat($("fsNom").value) || defaults.fsNom;
 
-    fitSingleLine($("pNum"), maxNum, 24);
-    fitSingleLine($("pApe"), maxApe, 18);
-    fitSingleLine($("pNom"), maxNom, 16);
+    // ✅ calcular anchos reales disponibles dentro del bloque:
+    const block = document.querySelector(".print-block");
+    const numEl = $("pNum");
+    const namesEl = $("pNames");
+
+    let namesWidth = null;
+    let numWidth = null;
+
+    if(block && numEl && namesEl){
+      // fuerza layout actualizado
+      block.getBoundingClientRect();
+
+      // Ancho real que queda para nombres:
+      // total - ancho del número - gap aproximado
+      const total = block.clientWidth;
+      const numRect = numEl.getBoundingClientRect();
+      const blockRect = block.getBoundingClientRect();
+
+      const numApprox = (numRect.width || 0);
+      const gapApprox = 24; // ~6mm en px aprox (margen seguro)
+      namesWidth = Math.max(80, total - numApprox - gapApprox);
+
+      // Para el número: limitamos por su max-width en CSS + margen seguridad
+      numWidth = Math.max(60, numApprox); // si no, el propio contenedor
+    }
+
+    // Número (mínimo razonable)
+    fitSingleLine($("pNum"), maxNum, 28, numWidth);
+
+    // Apellido y Nombre dentro del ancho de nombres (mínimos legibles)
+    fitSingleLine($("pApe"), maxApe, 32, namesWidth);
+    fitSingleLine($("pNom"), maxNom, 28, namesWidth);
   }
 
   function nextNumber(){
@@ -517,7 +555,6 @@
       fsNom: Number.isFinite(fsNom) ? fsNom : defaults.fsNom
     };
 
-    // guarda offsets por modo
     if (modo === "vertical"){
       patch.vertical = {...(loadState().vertical || {}), offx: Number.isFinite(offx)?offx:defaults.vertical.offx, offy: Number.isFinite(offy)?offy:defaults.vertical.offy};
     }else{
@@ -547,7 +584,6 @@
     refresh();
   }
 
-  // ===== Events =====
   $("btnNext").addEventListener("click", nextNumber);
   $("btnUpdate").addEventListener("click", refresh);
   $("btnPrint").addEventListener("click", () => { refresh(); window.print(); });
@@ -560,7 +596,6 @@
     refresh();
   });
 
-  // Enter = actualizar
   ["num","ape","nom","offx","offy","bw","bh","fsNum","fsApe","fsNom"].forEach(id=>{
     $(id).addEventListener("keydown", (e)=>{
       if(e.key === "Enter"){ e.preventDefault(); refresh(); }
