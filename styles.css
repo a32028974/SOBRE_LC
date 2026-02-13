@@ -1,1 +1,65 @@
+body {
+  font-family: Calibri, sans-serif;
+  background: #111;
+  margin: 0;
+  padding: 20px;
+  color: white;
+}
 
+.controls {
+  margin-bottom: 20px;
+}
+
+.controls input {
+  padding: 8px;
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+.page {
+  width: 210mm;
+  height: 297mm;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.rotated {
+  position: absolute;
+  top: 100mm;
+  left: 40mm;
+  transform: rotate(90deg);
+  transform-origin: top left;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.num {
+  width: 48mm;
+  height: 15mm;
+}
+
+.txt {
+  width: 75mm;
+  height: 15mm;
+}
+
+.box span {
+  font-weight: 900;
+  white-space: nowrap;
+}
