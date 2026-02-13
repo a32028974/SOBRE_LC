@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sobre LC Clientes • Imprimir (v4 costado)</title>
+  <title>Sobre LC Clientes • Imprimir (90° fijo)</title>
 
   <style>
     :root{
@@ -15,21 +15,24 @@
       --off-x: 12mm;
       --off-y: 32mm;
 
-      /* ===== ROTACIÓN TOTAL =====
-         0deg  = imprime normal
-         90deg = rota TODO el conjunto
-      */
-      --rot: 0deg;
+      /* ===== ROTACIÓN FIJA ===== */
+      --rot: 90deg;
 
       /* ===== CAJAS FIJAS (EXACTAS) ===== */
       --num-w: 48mm;  --num-h: 15mm;
       --txt-w: 75mm;  --txt-h: 15mm;
 
-      /* separación entre N° y columna texto */
+      /* separación entre N° y textos */
       --gap-x: 10mm;
-
       /* separación entre apellido y nombre */
       --gap-y: 2mm;
+
+      /* ===== DIMENSIONES TOTALES DEL GRUPO (para compensar la rotación) =====
+         group-w = num-w + gap-x + txt-w
+         group-h = txt-h + gap-y + txt-h
+      */
+      --group-w: calc(var(--num-w) + var(--gap-x) + var(--txt-w));   /* 48+10+75 = 133mm */
+      --group-h: calc(var(--txt-h) + var(--gap-y) + var(--txt-h));   /* 15+2+15 = 32mm */
 
       /* límites de auto-fit */
       --min-pt: 14;
@@ -74,7 +77,7 @@
     }
     label{ font-size:12px; opacity:.9; }
 
-    input, select{
+    input{
       padding:10px 12px;
       border-radius:10px;
       border:1px solid #2b3a52;
@@ -83,7 +86,7 @@
       outline:none;
       font-size:16px;
     }
-    input:focus, select:focus{ border-color:#4c84ff; }
+    input:focus{ border-color:#4c84ff; }
 
     .btns{
       display:flex;
@@ -134,7 +137,14 @@
       left: calc(var(--off-x) * (520 / 210));
       top:  calc(var(--off-y) * (520 / 210));
       transform-origin: top left;
-      transform: rotate(var(--rot));
+
+      /* ✅ Compensación para rotación 90°:
+         Antes: rotate(90) mandaba cosas a X negativo => recorte.
+         Ahora: translateX(groupH) y recién ahí rotate(90).
+      */
+      transform:
+        translate(calc(var(--group-h) * (520 / 210)), 0)
+        rotate(var(--rot));
     }
 
     .pv-row{ display:flex; gap: calc(var(--gap-x) * (520/210)); align-items:center; }
@@ -190,7 +200,12 @@
       position:absolute;
       left:0; top:0;
       transform-origin: top left;
-      transform: translate(var(--off-x), var(--off-y)) rotate(var(--rot));
+
+      /* ✅ LO MISMO que preview pero en mm real */
+      transform:
+        translate(var(--off-x), var(--off-y))
+        translate(var(--group-h), 0)
+        rotate(var(--rot));
     }
 
     .print-row{
@@ -222,7 +237,7 @@
       display:inline-block;
       font-weight:900;
       letter-spacing: 1px;
-      line-height:1;     /* clave para que no “coma” altura */
+      line-height:1;   /* clave para que no “coma” altura */
       transform: translateZ(0);
     }
   </style>
@@ -232,8 +247,8 @@
   <div class="app">
     <div class="panel">
       <div class="field">
-        <label>Número v7(4 a 6 dígitos / puede tener /1)</label>
-        <input id="num" placeholder="Ej: 7912" />
+        <label>Número (4 a 6 dígitos / puede tener /1)</label>
+        <input id="num" placeholder="Ej: 7912/1" />
       </div>
 
       <div class="field" style="min-width:260px">
@@ -246,14 +261,6 @@
         <input id="nom" placeholder="Ej: VERONICA" />
       </div>
 
-      <div class="field" style="min-width:260px">
-        <label>Modo de entrada del sobre</label>
-        <select id="modo">
-          <option value="costado">SOBRE DE COSTADO ✅ (como vos lo ponés)</option>
-          <option value="rotado">ROTAR 90° (si algún día lo necesitás)</option>
-        </select>
-      </div>
-
       <div class="btns">
         <button class="b1" id="btnNext">Siguiente Nº</button>
         <button class="b4" id="btnUpdate">Actualizar vista</button>
@@ -262,9 +269,9 @@
       </div>
 
       <div class="small">
+        ✅ 90° fijo permanente (sin opciones).<br>
         ✅ Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
-        ✅ Auto-fit ancho+alto: nunca recorta, siempre entra.<br>
-        🖨️ En el diálogo de imprimir: <b>Paper=A4</b> • <b>Scale=100%</b> • <b>Margins=None</b> • desactivar “Headers/Footers”.
+        ✅ Auto-fit ancho+alto: nunca recorta texto.
       </div>
     </div>
 
@@ -313,8 +320,7 @@
         <button class="b4" id="btnSave">Guardar</button>
 
         <div class="small" style="margin-top:10px">
-          🔧 Si “igual recorta”: el problema es <b>margen/escala del driver</b>. Probá: Margins=None y Scale=100%.  
-          En Brother HL-1200, revisá también “Tamaño papel: A4”.
+          Tip: si se te “va de lugar”, sólo tocás Offset X/Y.
         </div>
       </div>
     </div>
@@ -335,25 +341,23 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
-  const KEY = "sobre_lc_clientes_v4_costado";
+  const KEY = "sobre_lc_clientes_90fix_v1";
 
   function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } }
   function saveState(p){ const st=loadState(); const nx={...st,...p}; localStorage.setItem(KEY, JSON.stringify(nx)); return nx; }
-
   function toUpperSafe(s){ return (s??"").toString().trim().toUpperCase(); }
   function setVar(name, v, unit){ document.documentElement.style.setProperty(name, v + unit); }
 
   const defaults = {
     num: "7912",
-    modo: "costado",
-    costado: { offx: 12, offy: 32, rot: 0 },
-    rotado:  { offx: 12, offy: 32, rot: 90 },
+    offx: 12,
+    offy: 32,
     maxNum: 72,
     maxApe: 64,
     maxNom: 56
   };
 
-  // ✅ Auto-fit 2D (ancho+alto) dentro de la caja fija
+  // ✅ Auto-fit 2D (ancho+alto) dentro de caja fija
   function fitInBox(span, box, maxPt, minPt){
     if(!span || !box) return;
 
@@ -370,28 +374,6 @@
       pt -= 1;
       span.style.fontSize = pt + "pt";
     }
-  }
-
-  function applyMode(modo){
-    const st = loadState();
-    const m = modo || st.modo || defaults.modo;
-
-    const saved = st[m] || {};
-    const base = defaults[m] || defaults.costado;
-
-    const offx = saved.offx ?? base.offx;
-    const offy = saved.offy ?? base.offy;
-    const rot  = saved.rot  ?? base.rot;
-
-    $("modo").value = m;
-    $("offx").value = offx;
-    $("offy").value = offy;
-
-    setVar("--off-x", offx, "mm");
-    setVar("--off-y", offy, "mm");
-    setVar("--rot",  rot,  "deg");
-
-    saveState({ modo: m });
   }
 
   function refresh(){
@@ -429,7 +411,6 @@
   }
 
   function saveAll(){
-    const modo = $("modo").value;
     const offx = parseFloat($("offx").value);
     const offy = parseFloat($("offy").value);
 
@@ -440,34 +421,25 @@
     const maxApe = parseFloat($("maxApe").value);
     const maxNom = parseFloat($("maxNom").value);
 
-    const patch = {
+    saveState({
       num: $("num").value,
+      offx: Number.isFinite(offx) ? offx : defaults.offx,
+      offy: Number.isFinite(offy) ? offy : defaults.offy,
       maxNum: Number.isFinite(maxNum) ? maxNum : defaults.maxNum,
       maxApe: Number.isFinite(maxApe) ? maxApe : defaults.maxApe,
       maxNom: Number.isFinite(maxNom) ? maxNom : defaults.maxNom
-    };
+    });
 
-    const st = loadState();
-    const base = defaults[modo] || defaults.costado;
-    patch[modo] = {
-      offx: Number.isFinite(offx) ? offx : (st[modo]?.offx ?? base.offx),
-      offy: Number.isFinite(offy) ? offy : (st[modo]?.offy ?? base.offy),
-      rot:  base.rot
-    };
-
-    saveState(patch);
     refresh();
     alert("Guardado ✅");
   }
 
   function resetOffsets(){
-    const modo = $("modo").value;
-    const base = defaults[modo] || defaults.costado;
-    $("offx").value = base.offx;
-    $("offy").value = base.offy;
-    setVar("--off-x", base.offx, "mm");
-    setVar("--off-y", base.offy, "mm");
-    saveState({ [modo]: { offx: base.offx, offy: base.offy, rot: base.rot }});
+    $("offx").value = defaults.offx;
+    $("offy").value = defaults.offy;
+    setVar("--off-x", defaults.offx, "mm");
+    setVar("--off-y", defaults.offy, "mm");
+    saveState({ offx: defaults.offx, offy: defaults.offy });
     refresh();
   }
 
@@ -475,11 +447,16 @@
     const st = { ...defaults, ...loadState() };
 
     $("num").value = st.num ?? defaults.num;
+    $("offx").value = st.offx ?? defaults.offx;
+    $("offy").value = st.offy ?? defaults.offy;
+
     $("maxNum").value = st.maxNum ?? defaults.maxNum;
     $("maxApe").value = st.maxApe ?? defaults.maxApe;
     $("maxNom").value = st.maxNom ?? defaults.maxNom;
 
-    applyMode(st.modo || defaults.modo);
+    setVar("--off-x", (st.offx ?? defaults.offx), "mm");
+    setVar("--off-y", (st.offy ?? defaults.offy), "mm");
+
     refresh();
   }
 
@@ -488,8 +465,6 @@
   $("btnPrint").addEventListener("click", ()=>{ refresh(); window.print(); });
   $("btnReset").addEventListener("click", resetOffsets);
   $("btnSave").addEventListener("click", saveAll);
-
-  $("modo").addEventListener("change", (e)=>{ applyMode(e.target.value); refresh(); });
 
   ["num","ape","nom","offx","offy","maxNum","maxApe","maxNom"].forEach(id=>{
     $(id).addEventListener("input", ()=>{ if(["num","ape","nom"].includes(id)) refresh(); });
