@@ -1,33 +1,134 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>v1 Sobre Clientes</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="print.css" media="print">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sobre LC Clientes • Imprimir</title>
+
+  <link rel="stylesheet" href="styles.css?v=1" />
+  <link rel="stylesheet" href="print.css?v=1" media="print" />
 </head>
+
 <body>
+  <header class="topbar">
+    <div class="inputs">
+      <div class="field">
+        <label>Número (4 a 6 dígitos / puede tener /1)</label>
+        <input id="num" placeholder="Ej: 7912/2" />
+      </div>
 
-<div class="controls">
-  <input id="num" placeholder="Número">
-  <input id="ape" placeholder="Apellido">
-  <input id="nom" placeholder="Nombre">
-  <button onclick="update()">Actualizar</button>
-  <button onclick="window.print()">Imprimir</button>
-</div>
+      <div class="field">
+        <label>Apellido</label>
+        <input id="ape" placeholder="Ej: SOLIS MICHAELIS" />
+      </div>
 
-<div class="page">
-  <div class="rotated">
-    <div class="row">
-      <div class="box num"><span id="vNum">0000</span></div>
-      <div class="col">
-        <div class="box txt"><span id="vApe">APELLIDO</span></div>
-        <div class="box txt"><span id="vNom">NOMBRE</span></div>
+      <div class="field">
+        <label>Nombre (1 o 2)</label>
+        <input id="nom" placeholder="Ej: MARISEL ELIANA" />
       </div>
     </div>
-  </div>
-</div>
 
-<script src="script.js"></script>
+    <div class="actions">
+      <button class="btn b4" id="btnUpdate">Actualizar</button>
+      <button class="btn b2" id="btnPrint">Imprimir</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="previewPanel">
+      <div class="sheetViewport">
+        <!-- Vista previa A4 (misma hoja que impresión, solo escalada para pantalla) -->
+        <div class="sheet" id="sheet">
+          <div class="group" id="group">
+            <div class="row">
+              <div class="box box-num">
+                <span class="fit" id="tNum">—</span>
+              </div>
+
+              <div class="col">
+                <div class="box box-txt">
+                  <span class="fit" id="tApe">APELLIDO</span>
+                </div>
+                <div class="box box-txt">
+                  <span class="fit" id="tNom">NOMBRE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- guías opcionales -->
+          <div class="guides" id="guides" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="toolsPanel">
+      <h3>Ajuste fino</h3>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Offset X (mm)</label>
+          <input id="offx" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Offset Y (mm)</label>
+          <input id="offy" inputmode="decimal" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Máx letra Nº (pt)</label>
+          <input id="maxNum" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Mín letra Nº (pt)</label>
+          <input id="minNum" inputmode="decimal" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Máx letra Apellido (pt)</label>
+          <input id="maxApe" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Mín letra Apellido (pt)</label>
+          <input id="minApe" inputmode="decimal" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Máx letra Nombre (pt)</label>
+          <input id="maxNom" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Mín letra Nombre (pt)</label>
+          <input id="minNom" inputmode="decimal" />
+        </div>
+      </div>
+
+      <div class="toolRow">
+        <label class="check">
+          <input type="checkbox" id="showGuides" checked />
+          Mostrar guías (cajas)
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn b4" id="btnSave">Guardar</button>
+        <button class="btn b3" id="btnReset">Reset offsets</button>
+      </div>
+
+      <div class="tips">
+        ✅ 90° fijo permanente. Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
+        ✅ Auto-fit tipo Excel: nunca recorta, solo achica.<br>
+        🖨️ En el diálogo de imprimir: <b>Paper A4</b> • <b>Scale 100%</b> • <b>Margins: None</b> • <b>Headers/Footers OFF</b>.
+      </div>
+    </aside>
+  </main>
+
+  <script src="app.js?v=1"></script>
 </body>
 </html>
