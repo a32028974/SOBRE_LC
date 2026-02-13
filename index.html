@@ -3,39 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sobre LC Clientes • Imprimir (90° fijo)</title>
+  <title>Sobre LC Clientes • Imprimir (V9 FIX)</title>
 
   <style>
     :root{
-      /* ===== HOJA ===== */
-      --page-w: 210mm;   /* A4 */
-      --page-h: 297mm;   /* A4 */
+      --page-w: 210mm;  /* A4 */
+      --page-h: 297mm;  /* A4 */
 
-      /* ===== POSICIÓN del bloque (en la hoja) ===== */
+      /* posición del grupo en hoja */
       --off-x: 12mm;
       --off-y: 32mm;
 
-      /* ===== ROTACIÓN FIJA ===== */
+      /* 90° FIJO */
       --rot: 90deg;
 
-      /* ===== CAJAS FIJAS (EXACTAS) ===== */
-      --num-w: 48mm;  --num-h: 15mm;
-      --txt-w: 75mm;  --txt-h: 15mm;
+      /* cajas fijas exactas */
+      --num-w: 48mm; --num-h: 15mm;
+      --txt-w: 75mm; --txt-h: 15mm;
 
-      /* separación entre N° y textos */
       --gap-x: 10mm;
-      /* separación entre apellido y nombre */
       --gap-y: 2mm;
 
-      /* ===== DIMENSIONES TOTALES DEL GRUPO (para compensar la rotación) =====
-         group-w = num-w + gap-x + txt-w
-         group-h = txt-h + gap-y + txt-h
-      */
-      --group-w: calc(var(--num-w) + var(--gap-x) + var(--txt-w));   /* 48+10+75 = 133mm */
-      --group-h: calc(var(--txt-h) + var(--gap-y) + var(--txt-h));   /* 15+2+15 = 32mm */
+      /* dimensiones del grupo para compensar rotación */
+      --group-w: calc(var(--num-w) + var(--gap-x) + var(--txt-w)); /* 133mm */
+      --group-h: calc(var(--txt-h) + var(--gap-y) + var(--txt-h)); /* 32mm */
 
-      /* límites de auto-fit */
-      --min-pt: 14;
+      /* límites visuales */
       --max-num-pt: 72;
       --max-ape-pt: 64;
       --max-nom-pt: 56;
@@ -44,19 +37,13 @@
     }
 
     *{ box-sizing:border-box; }
-
     body{
       margin:0;
       font-family: var(--font);
       background:#0b0f14;
       color:#e8eef7;
     }
-
-    .app{
-      max-width: 1150px;
-      margin: 16px auto;
-      padding: 14px;
-    }
+    .app{ max-width: 1150px; margin: 16px auto; padding: 14px; }
 
     .panel{
       background:#111826;
@@ -68,15 +55,8 @@
       flex-wrap: wrap;
       align-items:flex-end;
     }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width: 180px;
-    }
+    .field{ display:flex; flex-direction:column; gap:6px; min-width: 180px; }
     label{ font-size:12px; opacity:.9; }
-
     input{
       padding:10px 12px;
       border-radius:10px;
@@ -88,40 +68,20 @@
     }
     input:focus{ border-color:#4c84ff; }
 
-    .btns{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-    }
+    .btns{ display:flex; gap:10px; flex-wrap: wrap; }
     button{
-      cursor:pointer;
-      border:0;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-weight: 800;
-      font-size: 14px;
+      cursor:pointer; border:0; border-radius: 10px;
+      padding: 10px 14px; font-weight: 800; font-size: 14px;
     }
     .b1{ background:#4c84ff; color:#08101c; }
     .b2{ background:#22c55e; color:#06120a; }
     .b3{ background:#f97316; color:#1a0b02; }
     .b4{ background:#334155; color:#e8eef7; }
 
-    .small{
-      opacity:.9;
-      font-size:12px;
-      margin-top:8px;
-      line-height:1.35;
-    }
+    .small{ opacity:.9; font-size:12px; margin-top:8px; line-height:1.35; }
 
-    /* ===== PREVIEW ===== */
-    .preview-wrap{
-      margin-top: 14px;
-      display:flex;
-      gap:14px;
-      flex-wrap:wrap;
-      align-items:flex-start;
-    }
-
+    /* preview */
+    .preview-wrap{ margin-top: 14px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; }
     .page-preview{
       width: 520px;
       aspect-ratio: 210 / 297;
@@ -131,22 +91,15 @@
       position: relative;
       overflow:hidden;
     }
-
     .pv-group{
       position:absolute;
       left: calc(var(--off-x) * (520 / 210));
       top:  calc(var(--off-y) * (520 / 210));
       transform-origin: top left;
-
-      /* ✅ Compensación para rotación 90°:
-         Antes: rotate(90) mandaba cosas a X negativo => recorte.
-         Ahora: translateX(groupH) y recién ahí rotate(90).
-      */
       transform:
         translate(calc(var(--group-h) * (520 / 210)), 0)
         rotate(var(--rot));
     }
-
     .pv-row{ display:flex; gap: calc(var(--gap-x) * (520/210)); align-items:center; }
     .pv-col{ display:flex; flex-direction:column; gap: calc(var(--gap-y) * (520/210)); }
 
@@ -158,11 +111,8 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 2px;
+      padding: 0;
       color:#000;
-      font-weight:900;
-      letter-spacing:1px;
-      white-space:nowrap;
     }
     .pv-num{ width: calc(var(--num-w)*(520/210)); height: calc(var(--num-h)*(520/210)); }
     .pv-txt{ width: calc(var(--txt-w)*(520/210)); height: calc(var(--txt-h)*(520/210)); }
@@ -179,7 +129,7 @@
     .row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
     .row .field{ min-width: 140px; }
 
-    /* ===== IMPRESIÓN ===== */
+    /* impresión */
     @page{ size: A4; margin: 0; }
 
     @media print{
@@ -187,7 +137,6 @@
       .app, .panel, .preview-wrap, .tools, .small { display:none !important; }
       .print-page{ display:block !important; }
     }
-
     .print-page{
       display:none;
       width: var(--page-w);
@@ -195,50 +144,31 @@
       position: relative;
       background:#fff;
     }
-
     .print-group{
       position:absolute;
       left:0; top:0;
       transform-origin: top left;
-
-      /* ✅ LO MISMO que preview pero en mm real */
       transform:
         translate(var(--off-x), var(--off-y))
         translate(var(--group-h), 0)
         rotate(var(--rot));
     }
+    .print-row{ display:flex; gap: var(--gap-x); align-items:center; }
+    .print-col{ display:flex; flex-direction:column; gap: var(--gap-y); }
 
-    .print-row{
-      display:flex;
-      gap: var(--gap-x);
-      align-items:center;
-    }
-
-    .print-col{
-      display:flex;
-      flex-direction:column;
-      gap: var(--gap-y);
-    }
-
-    /* CAJAS FIJAS (exactas, SIN padding) */
-    .box{
-      overflow:hidden;
-      white-space:nowrap;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:0;
-      margin:0;
-    }
+    .box{ width:auto; height:auto; overflow:hidden; padding:0; margin:0; }
     .box-num{ width:var(--num-w); height:var(--num-h); }
     .box-txt{ width:var(--txt-w); height:var(--txt-h); }
 
-    .t{
-      display:inline-block;
-      font-weight:900;
+    /* SVG dentro de caja: ocupa 100% */
+    .fitSvg{ width:100%; height:100%; display:block; }
+    .fitText{
+      font-family: var(--font);
+      font-weight: 900;
       letter-spacing: 1px;
-      line-height:1;   /* clave para que no “coma” altura */
-      transform: translateZ(0);
+      dominant-baseline: middle;  /* centra vertical */
+      text-anchor: middle;        /* centra horizontal */
+      fill: #000;
     }
   </style>
 </head>
@@ -247,18 +177,18 @@
   <div class="app">
     <div class="panel">
       <div class="field">
-        <label>Número v8 (4 a 6 dígitos / puede tener /1)</label>
-        <input id="num" placeholder="Ej: 7912/1" />
+        <label>Número (4 a 6 dígitos / puede tener /1)</label>
+        <input id="num" placeholder="Ej: 7912/2" />
       </div>
 
       <div class="field" style="min-width:260px">
         <label>Apellido</label>
-        <input id="ape" placeholder="Ej: ROMERO" />
+        <input id="ape" placeholder="Ej: ROMERO MICHAELIS" />
       </div>
 
       <div class="field" style="min-width:260px">
         <label>Nombre (1 o 2)</label>
-        <input id="nom" placeholder="Ej: VERONICA" />
+        <input id="nom" placeholder="Ej: VERONICA ELIANA" />
       </div>
 
       <div class="btns">
@@ -269,9 +199,8 @@
       </div>
 
       <div class="small">
-        ✅ 90° fijo permanente (sin opciones).<br>
-        ✅ Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
-        ✅ Auto-fit ancho+alto: nunca recorta texto.
+        ✅ V9 FIX: auto-fit por SVG (no falla en impresión).<br>
+        ✅ 90° fijo permanente. Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.
       </div>
     </div>
 
@@ -279,10 +208,10 @@
       <div class="page-preview">
         <div class="pv-group">
           <div class="pv-row">
-            <div class="pv-box pv-num"><span id="pvNum">—</span></div>
+            <div class="pv-box pv-num" id="pvBoxNum"></div>
             <div class="pv-col">
-              <div class="pv-box pv-txt"><span id="pvApe">APELLIDO</span></div>
-              <div class="pv-box pv-txt"><span id="pvNom">NOMBRE</span></div>
+              <div class="pv-box pv-txt" id="pvBoxApe"></div>
+              <div class="pv-box pv-txt" id="pvBoxNom"></div>
             </div>
           </div>
         </div>
@@ -290,7 +219,6 @@
 
       <div class="tools">
         <h3>Ajuste fino</h3>
-
         <div class="row">
           <div class="field">
             <label>Offset X (mm)</label>
@@ -318,22 +246,19 @@
         </div>
 
         <button class="b4" id="btnSave">Guardar</button>
-
-        <div class="small" style="margin-top:10px">
-          Tip: si se te “va de lugar”, sólo tocás Offset X/Y.
-        </div>
+        <div class="small" style="margin-top:10px">Tip: tocá Offset X/Y para ubicarlo exacto.</div>
       </div>
     </div>
   </div>
 
-  <!-- ===== IMPRESIÓN REAL ===== -->
+  <!-- IMPRESIÓN REAL -->
   <div class="print-page">
     <div class="print-group">
       <div class="print-row">
-        <div class="box box-num"><span class="t" id="tNum">—</span></div>
+        <div class="box box-num" id="prBoxNum"></div>
         <div class="print-col">
-          <div class="box box-txt"><span class="t" id="tApe">APELLIDO</span></div>
-          <div class="box box-txt"><span class="t" id="tNom">NOMBRE</span></div>
+          <div class="box box-txt" id="prBoxApe"></div>
+          <div class="box box-txt" id="prBoxNom"></div>
         </div>
       </div>
     </div>
@@ -341,15 +266,10 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
-  const KEY = "sobre_lc_clientes_90fix_v1";
-
-  function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } }
-  function saveState(p){ const st=loadState(); const nx={...st,...p}; localStorage.setItem(KEY, JSON.stringify(nx)); return nx; }
-  function toUpperSafe(s){ return (s??"").toString().trim().toUpperCase(); }
-  function setVar(name, v, unit){ document.documentElement.style.setProperty(name, v + unit); }
+  const KEY = "sobre_lc_clientes_v9_svgfit";
 
   const defaults = {
-    num: "7912",
+    num: "7912/2",
     offx: 12,
     offy: 32,
     maxNum: 72,
@@ -357,23 +277,59 @@
     maxNom: 56
   };
 
-  // ✅ Auto-fit 2D (ancho+alto) dentro de caja fija
-  function fitInBox(span, box, maxPt, minPt){
-    if(!span || !box) return;
+  function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } }
+  function saveState(p){ const st=loadState(); const nx={...st,...p}; localStorage.setItem(KEY, JSON.stringify(nx)); return nx; }
+  function toUpperSafe(s){ return (s??"").toString().trim().toUpperCase(); }
+  function setVar(name, v, unit){ document.documentElement.style.setProperty(name, v + unit); }
 
-    let pt = maxPt;
-    span.style.fontSize = pt + "pt";
+  // crea un SVG dentro de una caja y ajusta el texto para que entre perfecto
+  function renderFitText(container, text, maxPt){
+    container.innerHTML = "";
 
-    // forzar layout
-    box.getBoundingClientRect(); span.getBoundingClientRect();
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("class", "fitSvg");
+    svg.setAttribute("viewBox", "0 0 1000 200");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-    const W = box.clientWidth;
-    const H = box.clientHeight;
+    const t = document.createElementNS(svgNS, "text");
+    t.setAttribute("class", "fitText");
+    t.setAttribute("x", "500");
+    t.setAttribute("y", "100");
+    t.textContent = text;
 
-    while(pt > minPt && (span.scrollWidth > W || span.scrollHeight > H)){
-      pt -= 1;
-      span.style.fontSize = pt + "pt";
-    }
+    // tamaño base (alto grande) y luego escalamos
+    t.style.fontSize = maxPt + "pt";
+
+    svg.appendChild(t);
+    container.appendChild(svg);
+
+    // Esperar a layout para medir bbox
+    const bbox = t.getBBox();
+
+    // caja destino real (pixeles)
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+
+    // bbox en unidades SVG (viewBox). Pasamos a proporción
+    // viewBox = 1000 x 200
+    const scaleToPxX = W / 1000;
+    const scaleToPxY = H / 200;
+
+    // bbox traducido a px aprox
+    const bw = bbox.width * scaleToPxX;
+    const bh = bbox.height * scaleToPxY;
+
+    // escala necesaria para entrar en W/H (la más chica manda)
+    const sx = W / (bw || 1);
+    const sy = H / (bh || 1);
+    const s = Math.min(sx, sy);
+
+    // Aplicar escala al TEXT (no al SVG) para mantener centrado
+    t.setAttribute("transform", `translate(500 100) scale(${s}) translate(-500 -100)`);
+
+    // color en preview/print
+    t.setAttribute("fill", "#000");
   }
 
   function refresh(){
@@ -381,22 +337,19 @@
     const ape = toUpperSafe($("ape").value) || "APELLIDO";
     const nom = toUpperSafe($("nom").value) || "NOMBRE";
 
-    $("pvNum").textContent = num;
-    $("pvApe").textContent = ape;
-    $("pvNom").textContent = nom;
-
-    $("tNum").textContent = num;
-    $("tApe").textContent = ape;
-    $("tNom").textContent = nom;
-
     const maxNum = parseFloat($("maxNum").value) || defaults.maxNum;
     const maxApe = parseFloat($("maxApe").value) || defaults.maxApe;
     const maxNom = parseFloat($("maxNom").value) || defaults.maxNom;
-    const minPt  = 14;
 
-    fitInBox($("tNum"), document.querySelector(".box-num"), maxNum, minPt);
-    fitInBox($("tApe"), document.querySelectorAll(".box-txt")[0], maxApe, minPt);
-    fitInBox($("tNom"), document.querySelectorAll(".box-txt")[1], maxNom, minPt);
+    // preview
+    renderFitText($("pvBoxNum"), num, maxNum);
+    renderFitText($("pvBoxApe"), ape, maxApe);
+    renderFitText($("pvBoxNom"), nom, maxNom);
+
+    // print
+    renderFitText($("prBoxNum"), num, maxNum);
+    renderFitText($("prBoxApe"), ape, maxApe);
+    renderFitText($("prBoxNom"), nom, maxNom);
   }
 
   function nextNumber(){
@@ -447,6 +400,9 @@
     const st = { ...defaults, ...loadState() };
 
     $("num").value = st.num ?? defaults.num;
+    $("ape").value = st.ape ?? "";
+    $("nom").value = st.nom ?? "";
+
     $("offx").value = st.offx ?? defaults.offx;
     $("offy").value = st.offy ?? defaults.offy;
 
