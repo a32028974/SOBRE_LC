@@ -3,37 +3,41 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sobre LC Clientes • Imprimir (Cajas fijas)</title>
+  <title>Sobre LC Clientes • Imprimir (v4 costado)</title>
 
   <style>
     :root{
       /* ===== HOJA ===== */
-      --page-w: 210mm;
-      --page-h: 297mm;
+      --page-w: 210mm;   /* A4 */
+      --page-h: 297mm;   /* A4 */
 
-      /* ===== OFFSET del conjunto (en hoja) ===== */
+      /* ===== POSICIÓN del bloque (en la hoja) ===== */
       --off-x: 12mm;
       --off-y: 32mm;
 
-      /* 90deg si necesitás rotar el conjunto */
+      /* ===== ROTACIÓN TOTAL =====
+         0deg  = imprime normal
+         90deg = rota TODO el conjunto
+      */
       --rot: 0deg;
 
-      /* ===== Medidas fijas de CADA CAMPO ===== */
+      /* ===== CAJAS FIJAS (EXACTAS) ===== */
       --num-w: 48mm;  --num-h: 15mm;
-      --name-w: 75mm; --name-h: 15mm;
+      --txt-w: 75mm;  --txt-h: 15mm;
 
-      /* separación entre cajas */
+      /* separación entre N° y columna texto */
       --gap-x: 10mm;
+
+      /* separación entre apellido y nombre */
       --gap-y: 2mm;
 
-      /* fuente */
-      --font: "Calibri", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-
-      /* límites de auto-fit (pt) */
+      /* límites de auto-fit */
       --min-pt: 14;
       --max-num-pt: 72;
       --max-ape-pt: 64;
       --max-nom-pt: 56;
+
+      --font: "Calibri", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
 
     *{ box-sizing:border-box; }
@@ -68,8 +72,8 @@
       gap:6px;
       min-width: 180px;
     }
-
     label{ font-size:12px; opacity:.9; }
+
     input, select{
       padding:10px 12px;
       border-radius:10px;
@@ -91,7 +95,7 @@
       border:0;
       border-radius: 10px;
       padding: 10px 14px;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 14px;
     }
     .b1{ background:#4c84ff; color:#08101c; }
@@ -125,7 +129,7 @@
       overflow:hidden;
     }
 
-    .group-preview{
+    .pv-group{
       position:absolute;
       left: calc(var(--off-x) * (520 / 210));
       top:  calc(var(--off-y) * (520 / 210));
@@ -133,43 +137,29 @@
       transform: rotate(var(--rot));
     }
 
-    /* Cajas en preview (escala mm->px aprox) */
-    .pv-row{
-      display:flex;
-      gap: calc(var(--gap-x) * (520/210));
-      align-items:center;
-    }
+    .pv-row{ display:flex; gap: calc(var(--gap-x) * (520/210)); align-items:center; }
+    .pv-col{ display:flex; flex-direction:column; gap: calc(var(--gap-y) * (520/210)); }
 
     .pv-box{
-      border:2px dashed rgba(76,132,255,.7);
-      background: rgba(76,132,255,.05);
+      outline: 2px dashed rgba(76,132,255,.7);
+      outline-offset: -2px;
+      background: rgba(76,132,255,.06);
+      overflow:hidden;
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow:hidden;
       padding: 2px;
       color:#000;
       font-weight:900;
       letter-spacing:1px;
       white-space:nowrap;
     }
-    .pv-num{
-      width:  calc(var(--num-w)  * (520/210));
-      height: calc(var(--num-h)  * (520/210));
-    }
-    .pv-ape, .pv-nom{
-      width:  calc(var(--name-w) * (520/210));
-      height: calc(var(--name-h) * (520/210));
-    }
-    .pv-col{
-      display:flex;
-      flex-direction:column;
-      gap: calc(var(--gap-y) * (520/210));
-    }
+    .pv-num{ width: calc(var(--num-w)*(520/210)); height: calc(var(--num-h)*(520/210)); }
+    .pv-txt{ width: calc(var(--txt-w)*(520/210)); height: calc(var(--txt-h)*(520/210)); }
 
     .tools{
       flex: 1;
-      min-width: 320px;
+      min-width: 330px;
       background:#0f1622;
       border:1px solid #243044;
       border-radius: 12px;
@@ -177,7 +167,7 @@
     }
     .tools h3{ margin:0 0 8px 0; font-size:14px; opacity:.95; }
     .row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
-    .row .field{ min-width: 130px; }
+    .row .field{ min-width: 140px; }
 
     /* ===== IMPRESIÓN ===== */
     @page{ size: A4; margin: 0; }
@@ -203,48 +193,36 @@
       transform: translate(var(--off-x), var(--off-y)) rotate(var(--rot));
     }
 
-    /* --- layout de las cajas reales --- */
     .print-row{
       display:flex;
       gap: var(--gap-x);
       align-items:center;
     }
+
     .print-col{
       display:flex;
       flex-direction:column;
       gap: var(--gap-y);
     }
 
+    /* CAJAS FIJAS (exactas, SIN padding) */
     .box{
-      border: 0;
+      overflow:hidden;
+      white-space:nowrap;
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow:hidden;
-      white-space:nowrap;
-      padding: 0;     /* importante para que sea EXACTO en mm */
-      margin: 0;
+      padding:0;
+      margin:0;
     }
+    .box-num{ width:var(--num-w); height:var(--num-h); }
+    .box-txt{ width:var(--txt-w); height:var(--txt-h); }
 
-    .box-num{
-      width: var(--num-w);
-      height: var(--num-h);
-      font-weight:900;
-      letter-spacing:1px;
-    }
-
-    .box-ape, .box-nom{
-      width: var(--name-w);
-      height: var(--name-h);
-      font-weight:900;
-      letter-spacing:1px;
-      text-align:center;
-    }
-
-    /* texto interno (lo medimos con scrollWidth/Height) */
     .t{
       display:inline-block;
-      line-height:1;
+      font-weight:900;
+      letter-spacing: 1px;
+      line-height:1;     /* clave para que no “coma” altura */
       transform: translateZ(0);
     }
   </style>
@@ -254,25 +232,25 @@
   <div class="app">
     <div class="panel">
       <div class="field">
-        <label>Número v6 (4 a 6 dígitos / puede tener /1)</label>
-        <input id="num" placeholder="Ej: 7913/1" />
+        <label>Número v7(4 a 6 dígitos / puede tener /1)</label>
+        <input id="num" placeholder="Ej: 7912" />
       </div>
 
       <div class="field" style="min-width:260px">
         <label>Apellido</label>
-        <input id="ape" placeholder="Ej: SOLIS MICHAELIS" />
+        <input id="ape" placeholder="Ej: ROMERO" />
       </div>
 
       <div class="field" style="min-width:260px">
         <label>Nombre (1 o 2)</label>
-        <input id="nom" placeholder="Ej: ELIANA MARISE" />
+        <input id="nom" placeholder="Ej: VERONICA" />
       </div>
 
       <div class="field" style="min-width:260px">
         <label>Modo de entrada del sobre</label>
         <select id="modo">
-          <option value="vertical">VERTICAL (entra como hoja • cara arriba) ✅</option>
-          <option value="horizontal">HORIZONTAL (entra acostado)</option>
+          <option value="costado">SOBRE DE COSTADO ✅ (como vos lo ponés)</option>
+          <option value="rotado">ROTAR 90° (si algún día lo necesitás)</option>
         </select>
       </div>
 
@@ -285,19 +263,19 @@
 
       <div class="small">
         ✅ Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
-        ✅ La letra se agranda/achica sola para entrar (ancho y alto).<br>
-        🖨️ Recomendación: A4 • 100% • márgenes 0 • sin “ajustar a página”.
+        ✅ Auto-fit ancho+alto: nunca recorta, siempre entra.<br>
+        🖨️ En el diálogo de imprimir: <b>Paper=A4</b> • <b>Scale=100%</b> • <b>Margins=None</b> • desactivar “Headers/Footers”.
       </div>
     </div>
 
     <div class="preview-wrap">
       <div class="page-preview">
-        <div class="group-preview">
+        <div class="pv-group">
           <div class="pv-row">
             <div class="pv-box pv-num"><span id="pvNum">—</span></div>
             <div class="pv-col">
-              <div class="pv-box pv-ape"><span id="pvApe">APELLIDO</span></div>
-              <div class="pv-box pv-nom"><span id="pvNom">NOMBRE</span></div>
+              <div class="pv-box pv-txt"><span id="pvApe">APELLIDO</span></div>
+              <div class="pv-box pv-txt"><span id="pvNom">NOMBRE</span></div>
             </div>
           </div>
         </div>
@@ -335,20 +313,21 @@
         <button class="b4" id="btnSave">Guardar</button>
 
         <div class="small" style="margin-top:10px">
-          📌 Si te recorta: revisar en el diálogo de impresión que sea A4, 100% y márgenes 0.
+          🔧 Si “igual recorta”: el problema es <b>margen/escala del driver</b>. Probá: Margins=None y Scale=100%.  
+          En Brother HL-1200, revisá también “Tamaño papel: A4”.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ===== ZONA REAL DE IMPRESIÓN ===== -->
+  <!-- ===== IMPRESIÓN REAL ===== -->
   <div class="print-page">
-    <div class="print-group" id="printGroup">
+    <div class="print-group">
       <div class="print-row">
         <div class="box box-num"><span class="t" id="tNum">—</span></div>
         <div class="print-col">
-          <div class="box box-ape"><span class="t" id="tApe">APELLIDO</span></div>
-          <div class="box box-nom"><span class="t" id="tNom">NOMBRE</span></div>
+          <div class="box box-txt"><span class="t" id="tApe">APELLIDO</span></div>
+          <div class="box box-txt"><span class="t" id="tNom">NOMBRE</span></div>
         </div>
       </div>
     </div>
@@ -356,81 +335,63 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
+  const KEY = "sobre_lc_clientes_v4_costado";
 
-  const KEY = "sobre_lc_clientes_boxes_v1";
+  function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } }
+  function saveState(p){ const st=loadState(); const nx={...st,...p}; localStorage.setItem(KEY, JSON.stringify(nx)); return nx; }
 
-  function loadState(){
-    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); }
-    catch { return {}; }
-  }
-  function saveState(patch){
-    const st = loadState();
-    const next = { ...st, ...patch };
-    localStorage.setItem(KEY, JSON.stringify(next));
-    return next;
-  }
-
-  function toUpperSafe(s){
-    return (s ?? "").toString().trim().toUpperCase();
-  }
-
+  function toUpperSafe(s){ return (s??"").toString().trim().toUpperCase(); }
   function setVar(name, v, unit){ document.documentElement.style.setProperty(name, v + unit); }
 
   const defaults = {
-    num: "7909",
-    modo: "vertical",
-    vertical: { offx: 12, offy: 32, rot: 0 },   // tu caso real (no rotar) -> 0
-    horizontal:{ offx: 12, offy: 32, rot: 0 },
+    num: "7912",
+    modo: "costado",
+    costado: { offx: 12, offy: 32, rot: 0 },
+    rotado:  { offx: 12, offy: 32, rot: 90 },
     maxNum: 72,
     maxApe: 64,
     maxNom: 56
   };
 
-  function setMode(modo){
+  // ✅ Auto-fit 2D (ancho+alto) dentro de la caja fija
+  function fitInBox(span, box, maxPt, minPt){
+    if(!span || !box) return;
+
+    let pt = maxPt;
+    span.style.fontSize = pt + "pt";
+
+    // forzar layout
+    box.getBoundingClientRect(); span.getBoundingClientRect();
+
+    const W = box.clientWidth;
+    const H = box.clientHeight;
+
+    while(pt > minPt && (span.scrollWidth > W || span.scrollHeight > H)){
+      pt -= 1;
+      span.style.fontSize = pt + "pt";
+    }
+  }
+
+  function applyMode(modo){
     const st = loadState();
     const m = modo || st.modo || defaults.modo;
 
-    const v = st.vertical || {};
-    const h = st.horizontal || {};
+    const saved = st[m] || {};
+    const base = defaults[m] || defaults.costado;
 
-    // IMPORTANTE: en tu forma de cargar el sobre, normalmente NO hace falta rotar (0)
-    const conf = (m === "vertical")
-      ? { offx: v.offx ?? defaults.vertical.offx, offy: v.offy ?? defaults.vertical.offy, rot: v.rot ?? defaults.vertical.rot }
-      : { offx: h.offx ?? defaults.horizontal.offx, offy: h.offy ?? defaults.horizontal.offy, rot: h.rot ?? defaults.horizontal.rot };
+    const offx = saved.offx ?? base.offx;
+    const offy = saved.offy ?? base.offy;
+    const rot  = saved.rot  ?? base.rot;
 
     $("modo").value = m;
+    $("offx").value = offx;
+    $("offy").value = offy;
 
-    $("offx").value = conf.offx;
-    $("offy").value = conf.offy;
-
-    setVar("--off-x", conf.offx, "mm");
-    setVar("--off-y", conf.offy, "mm");
-    setVar("--rot", conf.rot, "deg");
+    setVar("--off-x", offx, "mm");
+    setVar("--off-y", offy, "mm");
+    setVar("--rot",  rot,  "deg");
 
     saveState({ modo: m });
-  }
-
-  // ✅ Auto-fit 2D: ajusta pt para entrar en ancho y alto (sin recortar)
-  function fitInBox(spanText, boxEl, maxPt, minPt){
-    if(!spanText || !boxEl) return;
-
-    let pt = maxPt;
-    spanText.style.fontSize = pt + "pt";
-
-    // Forzar layout
-    boxEl.getBoundingClientRect();
-    spanText.getBoundingClientRect();
-
-    const W = boxEl.clientWidth;
-    const H = boxEl.clientHeight;
-
-    // Bajamos hasta que entre (ancho y alto)
-    while(pt > minPt && (spanText.scrollWidth > W || spanText.scrollHeight > H)){
-      pt -= 1;
-      spanText.style.fontSize = pt + "pt";
-    }
-
-    // Si es MUY corto, ya está en maxPt (queda grande y lindo).
   }
 
   function refresh(){
@@ -438,12 +399,10 @@
     const ape = toUpperSafe($("ape").value) || "APELLIDO";
     const nom = toUpperSafe($("nom").value) || "NOMBRE";
 
-    // preview (simple)
     $("pvNum").textContent = num;
     $("pvApe").textContent = ape;
     $("pvNom").textContent = nom;
 
-    // impresión real
     $("tNum").textContent = num;
     $("tApe").textContent = ape;
     $("tNom").textContent = nom;
@@ -451,21 +410,19 @@
     const maxNum = parseFloat($("maxNum").value) || defaults.maxNum;
     const maxApe = parseFloat($("maxApe").value) || defaults.maxApe;
     const maxNom = parseFloat($("maxNom").value) || defaults.maxNom;
-    const minPt = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--min-pt")) || 14;
+    const minPt  = 14;
 
-    // Cajas reales (medición exacta)
     fitInBox($("tNum"), document.querySelector(".box-num"), maxNum, minPt);
-    fitInBox($("tApe"), document.querySelector(".box-ape"), maxApe, minPt);
-    fitInBox($("tNom"), document.querySelector(".box-nom"), maxNom, minPt);
+    fitInBox($("tApe"), document.querySelectorAll(".box-txt")[0], maxApe, minPt);
+    fitInBox($("tNom"), document.querySelectorAll(".box-txt")[1], maxNom, minPt);
   }
 
   function nextNumber(){
-    const raw = ($("num").value || "").toString().trim();
-    // suma SOLO al número principal, conserva /1 si existe
+    const raw = ($("num").value||"").toString().trim();
     const m = raw.match(/^(\d+)(.*)$/);
     const base = m ? parseInt(m[1],10) : NaN;
-    const suf = m ? (m[2] || "") : "";
-    const next = Number.isFinite(base) ? (base + 1) : parseInt(defaults.num,10);
+    const suf = m ? (m[2]||"") : "";
+    const next = Number.isFinite(base) ? (base+1) : parseInt(defaults.num,10);
     $("num").value = String(next) + suf;
     saveState({ num: $("num").value });
     refresh();
@@ -476,12 +433,12 @@
     const offx = parseFloat($("offx").value);
     const offy = parseFloat($("offy").value);
 
+    if(Number.isFinite(offx)) setVar("--off-x", offx, "mm");
+    if(Number.isFinite(offy)) setVar("--off-y", offy, "mm");
+
     const maxNum = parseFloat($("maxNum").value);
     const maxApe = parseFloat($("maxApe").value);
     const maxNom = parseFloat($("maxNom").value);
-
-    if(Number.isFinite(offx)) setVar("--off-x", offx, "mm");
-    if(Number.isFinite(offy)) setVar("--off-y", offy, "mm");
 
     const patch = {
       num: $("num").value,
@@ -490,11 +447,13 @@
       maxNom: Number.isFinite(maxNom) ? maxNom : defaults.maxNom
     };
 
-    if(modo === "vertical"){
-      patch.vertical = { ...(loadState().vertical||{}), offx: Number.isFinite(offx)?offx:defaults.vertical.offx, offy: Number.isFinite(offy)?offy:defaults.vertical.offy };
-    }else{
-      patch.horizontal = { ...(loadState().horizontal||{}), offx: Number.isFinite(offx)?offx:defaults.horizontal.offx, offy: Number.isFinite(offy)?offy:defaults.horizontal.offy };
-    }
+    const st = loadState();
+    const base = defaults[modo] || defaults.costado;
+    patch[modo] = {
+      offx: Number.isFinite(offx) ? offx : (st[modo]?.offx ?? base.offx),
+      offy: Number.isFinite(offy) ? offy : (st[modo]?.offy ?? base.offy),
+      rot:  base.rot
+    };
 
     saveState(patch);
     refresh();
@@ -503,19 +462,12 @@
 
   function resetOffsets(){
     const modo = $("modo").value;
-    if(modo === "vertical"){
-      $("offx").value = defaults.vertical.offx;
-      $("offy").value = defaults.vertical.offy;
-      setVar("--off-x", defaults.vertical.offx, "mm");
-      setVar("--off-y", defaults.vertical.offy, "mm");
-      saveState({ vertical: { ...(loadState().vertical||{}), offx: defaults.vertical.offx, offy: defaults.vertical.offy }});
-    }else{
-      $("offx").value = defaults.horizontal.offx;
-      $("offy").value = defaults.horizontal.offy;
-      setVar("--off-x", defaults.horizontal.offx, "mm");
-      setVar("--off-y", defaults.horizontal.offy, "mm");
-      saveState({ horizontal: { ...(loadState().horizontal||{}), offx: defaults.horizontal.offx, offy: defaults.horizontal.offy }});
-    }
+    const base = defaults[modo] || defaults.costado;
+    $("offx").value = base.offx;
+    $("offy").value = base.offy;
+    setVar("--off-x", base.offx, "mm");
+    setVar("--off-y", base.offy, "mm");
+    saveState({ [modo]: { offx: base.offx, offy: base.offy, rot: base.rot }});
     refresh();
   }
 
@@ -527,7 +479,7 @@
     $("maxApe").value = st.maxApe ?? defaults.maxApe;
     $("maxNom").value = st.maxNom ?? defaults.maxNom;
 
-    setMode(st.modo || defaults.modo);
+    applyMode(st.modo || defaults.modo);
     refresh();
   }
 
@@ -537,15 +489,11 @@
   $("btnReset").addEventListener("click", resetOffsets);
   $("btnSave").addEventListener("click", saveAll);
 
-  $("modo").addEventListener("change", (e)=>{ setMode(e.target.value); refresh(); });
+  $("modo").addEventListener("change", (e)=>{ applyMode(e.target.value); refresh(); });
 
   ["num","ape","nom","offx","offy","maxNum","maxApe","maxNom"].forEach(id=>{
-    $(id).addEventListener("input", ()=>{
-      if(["num","ape","nom"].includes(id)) refresh();
-    });
-    $(id).addEventListener("keydown", (e)=>{
-      if(e.key === "Enter"){ e.preventDefault(); refresh(); }
-    });
+    $(id).addEventListener("input", ()=>{ if(["num","ape","nom"].includes(id)) refresh(); });
+    $(id).addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); refresh(); }});
   });
 
   init();
