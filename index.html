@@ -3,40 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sobre LC Clientes • Imprimir</title>
+  <title>Sobre LC Clientes • Imprimir (v11 SVG)</title>
 
   <style>
     :root{
-      /* Hoja */
-      --page-w: 210mm;  /* A4 */
-      --page-h: 297mm;
+      /* === A4 (mm) === */
+      --page-w: 210;
+      --page-h: 297;
 
-      /* Offset (posición) */
-      --off-x: 12mm;
-      --off-y: 32mm;
+      /* === Rotación fija === */
+      --rot: 90; /* grados */
 
-      /* Rotación FIJA */
-      --rot: 90deg;
+      /* === Cajas fijas (mm) === */
+      --num-w: 48; --num-h: 15;
+      --txt-w: 75; --txt-h: 15;
 
-      /* Cajas fijas exactas */
-      --num-w: 48mm; --num-h: 15mm;
-      --txt-w: 75mm; --txt-h: 15mm;
+      /* === Separaciones (mm) === */
+      --gap-x: 10;
+      --gap-y: 2;
 
-      /* Separaciones */
-      --gap-x: 10mm;
-      --gap-y: 2mm;
+      /* === Offset bloque (mm) === */
+      --off-x: 105;
+      --off-y: 15;
 
-      /* Tamaños máximos (se achica si no entra) */
-      --max-num: 72pt;
-      --max-ape: 64pt;
-      --max-nom: 56pt;
+      /* === Máximos tipográficos (pt) === */
+      --max-num: 72;
+      --max-ape: 64;
+      --max-nom: 56;
 
-      /* Fuente */
-      --font: "Calibri", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font: Calibri, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     }
 
     *{ box-sizing:border-box; }
-
     body{
       margin:0;
       font-family: var(--font);
@@ -100,7 +98,7 @@
       line-height:1.35;
     }
 
-    /* ===== Preview ===== */
+    /* === Preview UI === */
     .preview-wrap{
       margin-top: 14px;
       display:flex;
@@ -119,35 +117,40 @@
       overflow:hidden;
     }
 
-    /* grupo “como imprime”, pero en preview */
-    .pv-group{
+    /* Guía donde va el bloque (aprox en pantalla) */
+    .guide{
       position:absolute;
-      left: calc(var(--off-x) * (520 / 210));
-      top:  calc(var(--off-y) * (520 / 210));
-      transform-origin: top left;
-
-      /* importante: para 90°, compenso para que no se vaya a X negativo */
-      transform:
-        translate(calc((var(--txt-h) + var(--gap-y) + var(--txt-h)) * (520 / 210)), 0)
-        rotate(var(--rot));
-    }
-
-    .pv-row{ display:flex; gap: calc(var(--gap-x) * (520/210)); align-items:center; }
-    .pv-col{ display:flex; flex-direction:column; gap: calc(var(--gap-y) * (520/210)); }
-
-    .pv-box{
-      outline: 2px dashed rgba(76,132,255,.7);
+      left: calc(var(--off-x) * (520/210));
+      top:  calc(var(--off-y) * (520/210));
+      width: calc((var(--num-h)) * (520/210) + (var(--gap-y))* (520/210) + (var(--txt-h))* (520/210) + (var(--gap-y))* (520/210) + (var(--txt-h))* (520/210));
+      height: calc((var(--num-w)) * (520/210) + (var(--gap-x))* (520/210) + (var(--txt-w))* (520/210));
+      outline: 2px dashed rgba(76,132,255,.85);
       outline-offset: -2px;
       background: rgba(76,132,255,.06);
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:0;
-      color:#000;
+      transform-origin: top left;
+      transform: rotate(0deg);
+      pointer-events:none;
     }
-    .pv-num{ width: calc(var(--num-w)*(520/210)); height: calc(var(--num-h)*(520/210)); }
-    .pv-txt{ width: calc(var(--txt-w)*(520/210)); height: calc(var(--txt-h)*(520/210)); }
+
+    /* Mini preview de texto (solo para ver contenido, no es 1:1 con driver) */
+    .mini{
+      position:absolute;
+      left: calc(var(--off-x) * (520/210));
+      top:  calc(var(--off-y) * (520/210));
+      transform-origin: top left;
+      /* lo muestro “rotado” para que veas cómo sale */
+      transform: rotate(-90deg) translateX(-260px);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      color:#000;
+      opacity:.95;
+      pointer-events:none;
+    }
+    .mini .mnum{ font-weight:900; font-size:28px; }
+    .mini .mcol{ display:flex; flex-direction:column; gap:4px; }
+    .mini .mape{ font-weight:900; font-size:22px; }
+    .mini .mnom{ font-weight:900; font-size:18px; }
 
     .tools{
       flex: 1;
@@ -161,71 +164,14 @@
     .row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
     .row .field{ min-width: 140px; }
 
-    /* ===== ZONA DE IMPRESIÓN (SIEMPRE EXISTE) =====
-       En pantalla: fuera de vista + invisible (pero con tamaño real, para medir bien).
-       En print: aparece en 0,0 y se ve.
-    */
-    .print-stage{
-      position: fixed;
-      left: -10000px; top: 0;
-      width: var(--page-w);
-      height: var(--page-h);
-      background:#fff;
-      visibility: hidden;
-      overflow: hidden;
-    }
-
-    @page{ size: A4; margin: 0; }
-
-    @media print{
-  body{
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .fit{
-    color: #000 !important;
-    opacity: 1 !important;
-    -webkit-text-fill-color: #000 !important;
-  }
-}
-
-
-    /* grupo real */
-    .print-group{
-      position:absolute;
-      left:0; top:0;
-      transform-origin: top left;
-
-      /* mismo truco: translate(altura del grupo) antes del rotate(90) */
-      transform:
-        translate(var(--off-x), var(--off-y))
-        translate(calc(var(--txt-h) + var(--gap-y) + var(--txt-h)), 0)
-        rotate(var(--rot));
-    }
-
-    .print-row{ display:flex; gap: var(--gap-x); align-items:center; }
-    .print-col{ display:flex; flex-direction:column; gap: var(--gap-y); }
-
-    .box{
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:0;
-      margin:0;
-    }
-    .box-num{ width:var(--num-w); height:var(--num-h); }
-    .box-txt{ width:var(--txt-w); height:var(--txt-h); }
-
-    /* texto */
-    .fit{
-      font-weight: 900;
-      letter-spacing: 1px;
-      line-height: 1;
-      white-space: nowrap;
-      display:block;
-      transform-origin:center;
+    /* Iframe oculto de impresión */
+    #printFrame{
+      position:fixed;
+      left:-99999px;
+      top:0;
+      width:0;
+      height:0;
+      border:0;
     }
   </style>
 </head>
@@ -240,12 +186,12 @@
 
       <div class="field" style="min-width:260px">
         <label>Apellido</label>
-        <input id="ape" placeholder="Ej: ROMERO MICHAELIS" />
+        <input id="ape" placeholder="Ej: GONZALEZ GONZALEZ" />
       </div>
 
       <div class="field" style="min-width:260px">
         <label>Nombre (1 o 2)</label>
-        <input id="nom" placeholder="Ej: VERONICA ELIANA" />
+        <input id="nom" placeholder="Ej: RIMINA VERONICA" />
       </div>
 
       <div class="btns">
@@ -257,20 +203,19 @@
 
       <div class="small">
         ✅ 90° fijo permanente. Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
-        ✅ Auto-fit ancho/alto: nunca recorta.<br>
-        🖨️ Recomendado: A4 • Scale 100% • Margins: None • sin headers/footers.
+        ✅ Auto-fit real (SVG): nunca recorta; si es largo se achica, si es corto se agranda hasta el máximo.<br>
+        🖨️ Recomendado en el diálogo: A4 • 100% • Margins: None • sin headers/footers.
       </div>
     </div>
 
     <div class="preview-wrap">
-      <div class="page-preview">
-        <div class="pv-group">
-          <div class="pv-row">
-            <div class="pv-box pv-num"><span class="fit" id="pvNum">—</span></div>
-            <div class="pv-col">
-              <div class="pv-box pv-txt"><span class="fit" id="pvApe">APELLIDO</span></div>
-              <div class="pv-box pv-txt"><span class="fit" id="pvNom">NOMBRE</span></div>
-            </div>
+      <div class="page-preview" aria-label="Vista A4">
+        <div class="guide"></div>
+        <div class="mini">
+          <div class="mnum" id="mNum">—</div>
+          <div class="mcol">
+            <div class="mape" id="mApe">APELLIDO</div>
+            <div class="mnom" id="mNom">NOMBRE</div>
           </div>
         </div>
       </div>
@@ -305,32 +250,25 @@
         </div>
 
         <button class="b4" id="btnSave">Guardar</button>
-        <div class="small" style="margin-top:10px">Tip: si “se va de lugar”, solo tocás Offset X/Y.</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ZONA DE IMPRESIÓN (siempre existe) -->
-  <div class="print-stage" aria-hidden="true">
-    <div class="print-group">
-      <div class="print-row">
-        <div class="box box-num"><span class="fit" id="prNum">—</span></div>
-        <div class="print-col">
-          <div class="box box-txt"><span class="fit" id="prApe">APELLIDO</span></div>
-          <div class="box box-txt"><span class="fit" id="prNom">NOMBRE</span></div>
+        <div class="small" style="margin-top:10px">
+          Tip: como ya te está imprimiendo “casi perfecto”, acá solo vas a tocar Offset X/Y.
+          La mini-vista es orientativa (el driver puede diferir), lo que manda es el papel.
         </div>
       </div>
     </div>
   </div>
 
+  <iframe id="printFrame" title="print"></iframe>
+
 <script>
   const $ = (id) => document.getElementById(id);
-  const KEY = "sobre_lc_clientes_v10";
+  const KEY = "sobre_lc_clientes_v11";
 
   const defaults = {
     num: "7912/2",
-    offx: 12,
-    offy: 32,
+    offx: 105,
+    offy: 15,
     maxNum: 72,
     maxApe: 64,
     maxNom: 56
@@ -338,99 +276,176 @@
 
   function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch{ return {}; } }
   function saveState(p){ const st=loadState(); const nx={...st,...p}; localStorage.setItem(KEY, JSON.stringify(nx)); return nx; }
+
   function toUpperSafe(s){ return (s??"").toString().trim().toUpperCase(); }
-  function setVar(name, v, unit){ document.documentElement.style.setProperty(name, v + unit); }
 
-  // Auto-fit: máximo -> achica hasta entrar por ancho o por alto
-  function fitToBox(span, maxPt, minPt){
-    const box = span.parentElement;
-    if(!box) return;
+  // ====== SVG helpers ======
+  const MM_TO_PX = 3.7795275591; // 96dpi
 
-    let pt = maxPt;
-    span.style.fontSize = pt + "pt";
-    span.style.transform = "scale(1)";
+  function makeSvgTextFit(text, boxWmm, boxHmm, maxPt){
+    // usamos SVG con viewBox en mm (más simple)
+    // Font-size en pt: 1pt = 0.352777... mm
+    const PT_TO_MM = 0.3527777778;
 
-    // Forzar layout
-    span.getBoundingClientRect();
+    const safe = (text || "").trim() || "—";
+    let fontPt = maxPt;
 
-    const bw = box.clientWidth;
-    const bh = box.clientHeight;
+    // Heurística rápida: estimar ancho (Calibri aprox) y ajustar
+    // Después el navegador termina de renderizar, pero ya va cerca.
+    // Para no recortar nunca, además metemos textLength + lengthAdjust (garantiza que entre por ancho).
+    // Por alto, bajamos fontPt si excede boxHmm.
 
-    // Si caja no tiene tamaño (no debería pasar con print-stage fuera de pantalla)
-    if(bw <= 0 || bh <= 0) return;
-
-    // Bajamos hasta que entre
-    while(pt > minPt && (span.scrollWidth > bw || span.scrollHeight > bh)){
-      pt -= 1;
-      span.style.fontSize = pt + "pt";
+    // Alto aproximado (cap height + asc/desc) ~ 1.05em
+    while(fontPt > 8 && (fontPt * PT_TO_MM) > (boxHmm * 0.92)){
+      fontPt -= 1;
     }
 
-    // Si todavía no entra (casos extremos), aplico escala fina
-    span.getBoundingClientRect();
-    const sw = span.scrollWidth || 1;
-    const sh = span.scrollHeight || 1;
+    const fontMm = fontPt * PT_TO_MM;
 
-    const sx = bw / sw;
-    const sy = bh / sh;
-    const s = Math.min(1, sx, sy);
-
-    if(s < 1){
-      span.style.transform = `scale(${s})`;
-    }
+    return {
+      text: safe,
+      fontPt,
+      fontMm
+    };
   }
 
-  function refresh(){
+  function buildPrintHtml(payload){
+    const {
+      num, ape, nom,
+      offx, offy,
+      maxNum, maxApe, maxNom
+    } = payload;
+
+    // Cajas fijas mm
+    const numW=48, numH=15, txtW=75, txtH=15, gapX=10, gapY=2;
+    const pageW=210, pageH=297;
+    const rot=90;
+
+    // Ajuste “no recorta” (ancho): textLength en mm
+    const fitNum = makeSvgTextFit(num, numW, numH, maxNum);
+    const fitApe = makeSvgTextFit(ape, txtW, txtH, maxApe);
+    const fitNom = makeSvgTextFit(nom, txtW, txtH, maxNom);
+
+    // Grupo original (sin rotar): fila num + columna ape/nom
+    const groupW = numW + gapX + txtW;
+    const groupH = txtH + gapY + txtH; // no usamos numH porque va al medio verticalmente
+
+    // Para rotar 90 alrededor de (0,0) sin ir a negativo, trasladamos X por groupH
+    // Transform final: translate(offx, offy) translate(groupH, 0) rotate(90)
+    const transform = `translate(${offx},${offy}) translate(${groupH},0) rotate(${rot})`;
+
+    // Posiciones internas del grupo
+    const numX = 0;
+    const numY = (groupH - numH) / 2;
+
+    const colX = numW + gapX;
+    const apeY = 0;
+    const nomY = txtH + gapY;
+
+    // Centrado de texto en cada caja (en mm)
+    function textEl(x, y, w, h, fit){
+      // baseline: usamos dominant-baseline="middle" para centrar vertical
+      // textLength fuerza ancho exacto -> entra seguro
+      return `
+        <text x="${x + w/2}" y="${y + h/2}"
+          font-family="Calibri, Arial, sans-serif"
+          font-size="${fit.fontMm}"
+          font-weight="900"
+          fill="#000"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          lengthAdjust="spacingAndGlyphs"
+          textLength="${w * 0.98}"
+        >${escapeXml(fit.text)}</text>
+      `;
+    }
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="${pageW}mm" height="${pageH}mm"
+           viewBox="0 0 ${pageW} ${pageH}">
+        <rect x="0" y="0" width="${pageW}" height="${pageH}" fill="#fff"/>
+        <g transform="${transform}">
+          <!-- cajas invisibles (solo guía interna) -->
+          <rect x="${numX}" y="${numY}" width="${numW}" height="${numH}" fill="transparent"/>
+          <rect x="${colX}" y="${apeY}" width="${txtW}" height="${txtH}" fill="transparent"/>
+          <rect x="${colX}" y="${nomY}" width="${txtW}" height="${txtH}" fill="transparent"/>
+
+          ${textEl(numX, numY, numW, numH, fitNum)}
+          ${textEl(colX, apeY, txtW, txtH, fitApe)}
+          ${textEl(colX, nomY, txtW, txtH, fitNom)}
+        </g>
+      </svg>
+    `;
+
+    return `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>print</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    html, body { margin:0; padding:0; background:#fff; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    svg { display:block; }
+  </style>
+</head>
+<body>
+  ${svg}
+  <script>
+    window.onload = () => {
+      setTimeout(() => { window.print(); }, 30);
+    };
+  <\/script>
+</body>
+</html>`;
+  }
+
+  function escapeXml(str){
+    return (str ?? "").toString()
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function refreshMini(){
     const num = toUpperSafe($("num").value) || "—";
     const ape = toUpperSafe($("ape").value) || "APELLIDO";
     const nom = toUpperSafe($("nom").value) || "NOMBRE";
+    $("mNum").textContent = num;
+    $("mApe").textContent = ape;
+    $("mNom").textContent = nom;
 
-    $("pvNum").textContent = num;
-    $("pvApe").textContent = ape;
-    $("pvNom").textContent = nom;
-
-    $("prNum").textContent = num;
-    $("prApe").textContent = ape;
-    $("prNom").textContent = nom;
-
-    const maxNum = parseFloat($("maxNum").value) || defaults.maxNum;
-    const maxApe = parseFloat($("maxApe").value) || defaults.maxApe;
-    const maxNom = parseFloat($("maxNom").value) || defaults.maxNom;
-
-    // Ajustar preview
-    fitToBox($("pvNum"), maxNum, 16);
-    fitToBox($("pvApe"), maxApe, 14);
-    fitToBox($("pvNom"), maxNom, 14);
-
-    // Ajustar print
-    fitToBox($("prNum"), maxNum, 16);
-    fitToBox($("prApe"), maxApe, 14);
-    fitToBox($("prNom"), maxNom, 14);
+    // Actualizo variables para la guía (solo estética)
+    document.documentElement.style.setProperty("--off-x", parseFloat($("offx").value || defaults.offx));
+    document.documentElement.style.setProperty("--off-y", parseFloat($("offy").value || defaults.offy));
   }
 
   function nextNumber(){
-    // Suma al primer bloque numérico, mantiene sufijo (/1, /2, etc)
     const raw = ($("num").value||"").toString().trim();
     const m = raw.match(/^(\d+)(.*)$/);
     const base = m ? parseInt(m[1],10) : NaN;
     const suf = m ? (m[2]||"") : "";
-    const next = Number.isFinite(base) ? (base + 1) : parseInt(defaults.num,10);
+    const next = Number.isFinite(base) ? (base + 1) : 7909;
     $("num").value = String(next) + suf;
     saveState({ num: $("num").value });
-    refresh();
+    refreshMini();
   }
 
   function saveAll(){
     const offx = parseFloat($("offx").value);
     const offy = parseFloat($("offy").value);
-    if(Number.isFinite(offx)) setVar("--off-x", offx, "mm");
-    if(Number.isFinite(offy)) setVar("--off-y", offy, "mm");
-
     const maxNum = parseFloat($("maxNum").value);
     const maxApe = parseFloat($("maxApe").value);
     const maxNom = parseFloat($("maxNom").value);
 
     saveState({
       num: $("num").value,
+      ape: $("ape").value,
+      nom: $("nom").value,
       offx: Number.isFinite(offx) ? offx : defaults.offx,
       offy: Number.isFinite(offy) ? offy : defaults.offy,
       maxNum: Number.isFinite(maxNum) ? maxNum : defaults.maxNum,
@@ -438,17 +453,53 @@
       maxNom: Number.isFinite(maxNom) ? maxNom : defaults.maxNom
     });
 
-    refresh();
+    refreshMini();
     alert("Guardado ✅");
   }
 
   function resetOffsets(){
     $("offx").value = defaults.offx;
     $("offy").value = defaults.offy;
-    setVar("--off-x", defaults.offx, "mm");
-    setVar("--off-y", defaults.offy, "mm");
     saveState({ offx: defaults.offx, offy: defaults.offy });
-    refresh();
+    refreshMini();
+  }
+
+  function doPrint(){
+    // Siempre refresco y guardo lo último escrito
+    const num = toUpperSafe($("num").value);
+    const ape = toUpperSafe($("ape").value);
+    const nom = toUpperSafe($("nom").value);
+
+    const offx = parseFloat($("offx").value);
+    const offy = parseFloat($("offy").value);
+
+    const maxNum = parseFloat($("maxNum").value);
+    const maxApe = parseFloat($("maxApe").value);
+    const maxNom = parseFloat($("maxNom").value);
+
+    saveState({
+      num: $("num").value,
+      ape: $("ape").value,
+      nom: $("nom").value
+    });
+
+    const payload = {
+      num: num || "—",
+      ape: ape || "APELLIDO",
+      nom: nom || "NOMBRE",
+      offx: Number.isFinite(offx) ? offx : defaults.offx,
+      offy: Number.isFinite(offy) ? offy : defaults.offy,
+      maxNum: Number.isFinite(maxNum) ? maxNum : defaults.maxNum,
+      maxApe: Number.isFinite(maxApe) ? maxApe : defaults.maxApe,
+      maxNom: Number.isFinite(maxNom) ? maxNom : defaults.maxNom
+    };
+
+    const html = buildPrintHtml(payload);
+    const fr = $("printFrame");
+    const doc = fr.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
   }
 
   function init(){
@@ -465,30 +516,18 @@
     $("maxApe").value = st.maxApe ?? defaults.maxApe;
     $("maxNom").value = st.maxNom ?? defaults.maxNom;
 
-    setVar("--off-x", (st.offx ?? defaults.offx), "mm");
-    setVar("--off-y", (st.offy ?? defaults.offy), "mm");
-
-    // primera pasada + otra en 1 frame (por fonts/layout)
-    refresh();
-    requestAnimationFrame(refresh);
+    refreshMini();
   }
 
-  // Importante: antes de imprimir, refresco sí o sí
-  window.addEventListener("beforeprint", () => {
-    refresh();
-    // una vuelta más por si el driver reflowea
-    requestAnimationFrame(refresh);
-  });
-
   $("btnNext").addEventListener("click", nextNumber);
-  $("btnUpdate").addEventListener("click", refresh);
-  $("btnPrint").addEventListener("click", ()=>{ refresh(); window.print(); });
-  $("btnReset").addEventListener("click", resetOffsets);
+  $("btnUpdate").addEventListener("click", refreshMini);
   $("btnSave").addEventListener("click", saveAll);
+  $("btnReset").addEventListener("click", resetOffsets);
+  $("btnPrint").addEventListener("click", doPrint);
 
   ["num","ape","nom","offx","offy","maxNum","maxApe","maxNom"].forEach(id=>{
-    $(id).addEventListener("input", ()=>{ if(["num","ape","nom"].includes(id)) refresh(); });
-    $(id).addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); refresh(); }});
+    $(id).addEventListener("input", ()=>{ if(["num","ape","nom","offx","offy"].includes(id)) refreshMini(); });
+    $(id).addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); refreshMini(); }});
   });
 
   init();
