@@ -178,14 +178,18 @@
     @page{ size: A4; margin: 0; }
 
     @media print{
-      body{ background:#fff; }
-      .app{ display:none !important; }
-      .print-stage{
-        left: 0 !important;
-        top: 0 !important;
-        visibility: visible !important;
-      }
-    }
+  body{
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .fit{
+    color: #000 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #000 !important;
+  }
+}
+
 
     /* grupo real */
     .print-group{
