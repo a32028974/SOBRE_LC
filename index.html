@@ -5,15 +5,190 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sobre LC Clientes • Imprimir</title>
 
-  <link rel="stylesheet" href="styles.css?v=1" />
-  <link rel="stylesheet" href="print.css?v=1" media="print" />
+  <style>
+    :root{
+      /* A4 real */
+      --page-w-mm: 210;
+      --page-h-mm: 297;
+
+      /* Offset donde cae el grupo (mm) */
+      --off-x: 105;
+      --off-y: 15;
+
+      /* Cajas fijas (mm) */
+      --num-w: 48; --num-h: 15;
+      --txt-w: 75; --txt-h: 15;
+
+      /* Separaciones (mm) */
+      --gap-x: 10;
+      --gap-y: 2;
+
+      /* Tamaños base (pt) */
+      --fs-num: 72;
+      --fs-ape: 64;
+      --fs-nom: 56;
+
+      --font: Calibri, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:#0b0f14;
+      color:#e8eef7;
+    }
+
+    .app{
+      max-width: 1180px;
+      margin: 16px auto;
+      padding: 14px;
+    }
+
+    .top{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      background:#111826;
+      border:1px solid #243044;
+      border-radius:12px;
+      padding:12px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 240px;
+    }
+    label{ font-size:12px; opacity:.9; }
+
+    input{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #2b3a52;
+      background:#0f1622;
+      color:#e8eef7;
+      outline:none;
+      font-size:16px;
+    }
+    input:focus{ border-color:#4c84ff; }
+
+    .btns{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button{
+      cursor:pointer;
+      border:0;
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:800;
+      font-size:14px;
+    }
+    .b1{ background:#334155; color:#e8eef7; }
+    .b2{ background:#22c55e; color:#06120a; }
+
+    .layout{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 560px 1fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .paperWrap{
+      background:#0f1622;
+      border:1px solid #243044;
+      border-radius:12px;
+      padding:12px;
+    }
+
+    /* “Hoja” en pantalla (solo preview) */
+    .paperViewport{
+      width: 520px;
+      aspect-ratio: 210 / 297;
+      background:#fff;
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid #2b3a52;
+      margin: 0 auto;
+      position:relative;
+    }
+
+    /* El SVG ocupa todo el viewport */
+    #svgA4{
+      width:100%;
+      height:100%;
+      display:block;
+      background:#fff;
+    }
+
+    .tools{
+      background:#0f1622;
+      border:1px solid #243044;
+      border-radius:12px;
+      padding:12px;
+      min-width: 320px;
+    }
+    .tools h3{
+      margin:0 0 10px 0;
+      font-size:14px;
+      opacity:.95;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .row .field{ min-width: 150px; }
+
+    .check{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin-top:8px;
+      user-select:none;
+      font-size:13px;
+      opacity:.95;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      opacity:.9;
+      line-height:1.35;
+    }
+
+    /* PRINT: solo el SVG en tamaño real A4 */
+    @page { size: A4; margin: 0; }
+
+    @media print{
+      body{ background:#fff; }
+      .app{ display:none !important; }
+
+      /* El SVG se imprime 1 sola hoja, A4 exacto */
+      #printOnly{
+        display:block !important;
+        width: 210mm;
+        height: 297mm;
+        margin:0;
+      }
+      #printOnly #svgPrint{
+        width: 210mm;
+        height: 297mm;
+        display:block;
+      }
+    }
+
+    #printOnly{ display:none; }
+  </style>
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="inputs">
+  <div class="app">
+    <div class="top">
       <div class="field">
-        <label>Número v2 (4 a 6 dígitos / puede tener /1)</label>
+        <label>Número (4 a 6 dígitos / puede tener /1)</label>
         <input id="num" placeholder="Ej: 7912/2" />
       </div>
 
@@ -26,109 +201,294 @@
         <label>Nombre (1 o 2)</label>
         <input id="nom" placeholder="Ej: MARISEL ELIANA" />
       </div>
+
+      <div class="btns">
+        <button class="b1" id="btnUpdate">Actualizar</button>
+        <button class="b2" id="btnPrint">Imprimir</button>
+      </div>
     </div>
 
-    <div class="actions">
-      <button class="btn b4" id="btnUpdate">Actualizar</button>
-      <button class="btn b2" id="btnPrint">Imprimir</button>
-    </div>
-  </header>
+    <div class="layout">
+      <div class="paperWrap">
+        <div class="paperViewport" title="Vista previa A4">
+          <!-- SVG A4 PREVIEW (mismo contenido que print) -->
+          <svg id="svgA4"
+               viewBox="0 0 210 297"
+               xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="210" height="297" fill="white"/>
+            <!-- contenido inyectado por JS -->
+            <g id="gContentPreview"></g>
+          </svg>
+        </div>
+      </div>
 
-  <main class="main">
-    <section class="previewPanel">
-      <div class="sheetViewport">
-        <!-- Vista previa A4 (misma hoja que impresión, solo escalada para pantalla) -->
-        <div class="sheet" id="sheet">
-          <div class="group" id="group">
-            <div class="row">
-              <div class="box box-num">
-                <span class="fit" id="tNum">—</span>
-              </div>
+      <div class="tools">
+        <h3>Ajuste fino (lo único que tocás)</h3>
 
-              <div class="col">
-                <div class="box box-txt">
-                  <span class="fit" id="tApe">APELLIDO</span>
-                </div>
-                <div class="box box-txt">
-                  <span class="fit" id="tNom">NOMBRE</span>
-                </div>
-              </div>
-            </div>
+        <div class="row">
+          <div class="field">
+            <label>Offset X (mm)</label>
+            <input id="offx" inputmode="decimal" />
           </div>
+          <div class="field">
+            <label>Offset Y (mm)</label>
+            <input id="offy" inputmode="decimal" />
+          </div>
+        </div>
 
-          <!-- guías opcionales -->
-          <div class="guides" id="guides" aria-hidden="true"></div>
+        <div class="row">
+          <div class="field">
+            <label>Base Nº (pt)</label>
+            <input id="fsNum" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label>Base Apellido (pt)</label>
+            <input id="fsApe" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label>Base Nombre (pt)</label>
+            <input id="fsNom" inputmode="decimal" />
+          </div>
         </div>
-      </div>
-    </section>
 
-    <aside class="toolsPanel">
-      <h3>Ajuste fino</h3>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Offset X (mm)</label>
-          <input id="offx" inputmode="decimal" />
-        </div>
-        <div class="field">
-          <label>Offset Y (mm)</label>
-          <input id="offy" inputmode="decimal" />
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Máx letra Nº (pt)</label>
-          <input id="maxNum" inputmode="decimal" />
-        </div>
-        <div class="field">
-          <label>Mín letra Nº (pt)</label>
-          <input id="minNum" inputmode="decimal" />
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Máx letra Apellido (pt)</label>
-          <input id="maxApe" inputmode="decimal" />
-        </div>
-        <div class="field">
-          <label>Mín letra Apellido (pt)</label>
-          <input id="minApe" inputmode="decimal" />
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Máx letra Nombre (pt)</label>
-          <input id="maxNom" inputmode="decimal" />
-        </div>
-        <div class="field">
-          <label>Mín letra Nombre (pt)</label>
-          <input id="minNom" inputmode="decimal" />
-        </div>
-      </div>
-
-      <div class="toolRow">
-        <label class="check">
+        <div class="check">
           <input type="checkbox" id="showGuides" checked />
-          Mostrar guías (cajas)
-        </label>
-      </div>
+          <label for="showGuides" style="cursor:pointer">Mostrar guías (cajas)</label>
+        </div>
 
-      <div class="btnRow">
-        <button class="btn b4" id="btnSave">Guardar</button>
-        <button class="btn b3" id="btnReset">Reset offsets</button>
+        <div class="hint">
+          ✅ 90° fijo permanente. Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
+          ✅ Auto-fit tipo Excel: **nunca recorta**, solo achica.<br>
+          🖨️ En el diálogo de imprimir: **Paper A4 • Scale 100% • Margins None • Headers/Footers OFF**.
+        </div>
       </div>
+    </div>
+  </div>
 
-      <div class="tips">
-        ✅ 90° fijo permanente. Cajas fijas: Nº 48×15mm • Apellido 75×15mm • Nombre 75×15mm.<br>
-        ✅ Auto-fit tipo Excel: nunca recorta, solo achica.<br>
-        🖨️ En el diálogo de imprimir: <b>Paper A4</b> • <b>Scale 100%</b> • <b>Margins: None</b> • <b>Headers/Footers OFF</b>.
-      </div>
-    </aside>
-  </main>
+  <!-- PRINT ONLY (misma data, pero SVG con tamaño A4 real) -->
+  <div id="printOnly">
+    <svg id="svgPrint"
+         viewBox="0 0 210 297"
+         xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="210" height="297" fill="white"/>
+      <g id="gContentPrint"></g>
+    </svg>
+  </div>
 
-  <script src="app.js?v=1"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const KEY = "sobre_lc_svg_v1"; // cambiá si querés reset total
+
+  const defaults = {
+    num: "7912/2",
+    ape: "SOLIS MICHAELIS",
+    nom: "MARISEL ELIANA",
+    offx: 105,
+    offy: 15,
+    fsNum: 72,
+    fsApe: 64,
+    fsNom: 56,
+    showGuides: true
+  };
+
+  function loadState(){
+    try{ return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+    catch{ return {}; }
+  }
+  function saveState(p){
+    const st = loadState();
+    const nx = { ...st, ...p };
+    localStorage.setItem(KEY, JSON.stringify(nx));
+    return nx;
+  }
+  function toUpperSafe(s){ return (s ?? "").toString().trim().toUpperCase(); }
+
+  function getVars(){
+    // cajas (mm)
+    const numW = 48, numH = 15;
+    const txtW = 75, txtH = 15;
+    const gapX = 10, gapY = 2;
+
+    // grupo sin rotación:
+    const groupW = numW + gapX + txtW;
+    const groupH = (txtH + gapY + txtH);
+
+    // offsets
+    const offx = parseFloat($("offx").value);
+    const offy = parseFloat($("offy").value);
+
+    // font sizes base
+    const fsNum = parseFloat($("fsNum").value);
+    const fsApe = parseFloat($("fsApe").value);
+    const fsNom = parseFloat($("fsNom").value);
+
+    return {
+      numW,numH,txtW,txtH,gapX,gapY,groupW,groupH,
+      offx: Number.isFinite(offx) ? offx : defaults.offx,
+      offy: Number.isFinite(offy) ? offy : defaults.offy,
+      fsNum: Number.isFinite(fsNum) ? fsNum : defaults.fsNum,
+      fsApe: Number.isFinite(fsApe) ? fsApe : defaults.fsApe,
+      fsNom: Number.isFinite(fsNom) ? fsNom : defaults.fsNom,
+      guides: $("showGuides").checked
+    };
+  }
+
+  function clearNode(node){
+    while(node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function el(tag, attrs = {}, children = []){
+    const ns = "http://www.w3.org/2000/svg";
+    const e = document.createElementNS(ns, tag);
+    for (const [k,v] of Object.entries(attrs)){
+      if (v === null || v === undefined) continue;
+      e.setAttribute(k, String(v));
+    }
+    for (const c of children) e.appendChild(c);
+    return e;
+  }
+
+  // Auto-fit tipo Excel: escala uniforme para entrar en boxW x boxH (mm)
+  function makeFittedText(text, x, y, boxW, boxH, basePt){
+    // Convertimos pt a “unidades SVG” aproximadas:
+    // En SVG con viewBox en mm: 1 unidad = 1mm.
+    // Para medir real, usamos getBBox y escalamos en base a mm del box.
+    const t = el("text", {
+      x, y,
+      "text-anchor": "middle",
+      "dominant-baseline": "middle",
+      "font-family": "Calibri, Arial, sans-serif",
+      "font-weight": "900",
+      "letter-spacing": "1",
+      "font-size": basePt  // provisional, luego escalamos
+    });
+    t.textContent = text;
+    return t;
+  }
+
+  function fitTextElementToBox(textEl, boxW, boxH){
+    // Necesita estar en el DOM para getBBox()
+    const bb = textEl.getBBox();
+    const w = bb.width || 1;
+    const h = bb.height || 1;
+    const s = Math.min(1, boxW / w, boxH / h);
+    // Escalar alrededor del centro del texto:
+    const cx = parseFloat(textEl.getAttribute("x"));
+    const cy = parseFloat(textEl.getAttribute("y"));
+    textEl.setAttribute("transform", `translate(${cx} ${cy}) scale(${s}) translate(${-cx} ${-cy})`);
+  }
+
+  function buildContentGroup(targetG, values){
+    clearNode(targetG);
+
+    const { numW,numH,txtW,txtH,gapX,gapY,groupH,offx,offy,fsNum,fsApe,fsNom,guides } = getVars();
+
+    // Grupo rotado 90° fijo:
+    // 1) translate(offx, offy)
+    // 2) translate(groupH, 0)  <-- compensa para que no se vaya a X negativo al rotar
+    // 3) rotate(90)
+    const g = el("g", {
+      transform: `translate(${offx} ${offy}) translate(${groupH} 0) rotate(90)`
+    });
+
+    // Boxes (sin rotación, dentro del grupo)
+    const numX = 0, numY = 0;
+    const txtX = numW + gapX;
+    const apeY = 0;
+    const nomY = txtH + gapY;
+
+    // Guías (opcional)
+    const guideStyle = guides ? { stroke:"#3b82f6", "stroke-width":"0.6", "stroke-dasharray":"2 2", fill:"none" } : null;
+
+    if (guides){
+      g.appendChild(el("rect", { x:numX, y:numY, width:numW, height:numH, ...guideStyle }));
+      g.appendChild(el("rect", { x:txtX, y:apeY, width:txtW, height:txtH, ...guideStyle }));
+      g.appendChild(el("rect", { x:txtX, y:nomY, width:txtW, height:txtH, ...guideStyle }));
+    }
+
+    // Texto centrado en cada caja
+    const tNum = makeFittedText(values.num, numX + numW/2, numY + numH/2, numW, numH, fsNum);
+    const tApe = makeFittedText(values.ape, txtX + txtW/2, apeY + txtH/2, txtW, txtH, fsApe);
+    const tNom = makeFittedText(values.nom, txtX + txtW/2, nomY + txtH/2, txtW, txtH, fsNom);
+
+    // Agregar primero, luego fit (porque getBBox necesita DOM)
+    g.appendChild(tNum);
+    g.appendChild(tApe);
+    g.appendChild(tNom);
+
+    targetG.appendChild(g);
+
+    // Fit real
+    fitTextElementToBox(tNum, numW, numH);
+    fitTextElementToBox(tApe, txtW, txtH);
+    fitTextElementToBox(tNom, txtW, txtH);
+  }
+
+  function refresh(){
+    const values = {
+      num: toUpperSafe($("num").value) || "—",
+      ape: toUpperSafe($("ape").value) || "APELLIDO",
+      nom: toUpperSafe($("nom").value) || "NOMBRE"
+    };
+
+    // Guardar valores
+    saveState({
+      num: values.num,
+      ape: values.ape,
+      nom: values.nom,
+      offx: parseFloat($("offx").value),
+      offy: parseFloat($("offy").value),
+      fsNum: parseFloat($("fsNum").value),
+      fsApe: parseFloat($("fsApe").value),
+      fsNom: parseFloat($("fsNom").value),
+      showGuides: $("showGuides").checked
+    });
+
+    // Preview y Print comparten la misma construcción
+    buildContentGroup($("gContentPreview"), values);
+    buildContentGroup($("gContentPrint"), values);
+  }
+
+  function init(){
+    const st = { ...defaults, ...loadState() };
+
+    $("num").value = st.num ?? defaults.num;
+    $("ape").value = st.ape ?? defaults.ape;
+    $("nom").value = st.nom ?? defaults.nom;
+
+    $("offx").value = Number.isFinite(st.offx) ? st.offx : defaults.offx;
+    $("offy").value = Number.isFinite(st.offy) ? st.offy : defaults.offy;
+
+    $("fsNum").value = Number.isFinite(st.fsNum) ? st.fsNum : defaults.fsNum;
+    $("fsApe").value = Number.isFinite(st.fsApe) ? st.fsApe : defaults.fsApe;
+    $("fsNom").value = Number.isFinite(st.fsNom) ? st.fsNom : defaults.fsNom;
+
+    $("showGuides").checked = (st.showGuides ?? defaults.showGuides) ? true : false;
+
+    refresh();
+    // segunda pasada por si la tipografía tarda
+    requestAnimationFrame(refresh);
+  }
+
+  $("btnUpdate").addEventListener("click", refresh);
+  $("btnPrint").addEventListener("click", () => { refresh(); window.print(); });
+
+  ["num","ape","nom","offx","offy","fsNum","fsApe","fsNom"].forEach(id=>{
+    $(id).addEventListener("input", () => refresh());
+    $(id).addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); refresh(); }});
+  });
+  $("showGuides").addEventListener("change", refresh);
+
+  // Antes de imprimir, refresco sí o sí
+  window.addEventListener("beforeprint", () => {
+    refresh();
+    requestAnimationFrame(refresh);
+  });
+
+  init();
+})();
+</script>
 </body>
 </html>
